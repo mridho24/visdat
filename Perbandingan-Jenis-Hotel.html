@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Perbandingan Pemesanan Hotel</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      margin: 0;
+      padding: 20px;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    }
+
+    .chart-title {
+      text-align: center;
+      font-size: 24px;
+      color: #2c3e50;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #eee;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      margin-bottom: 8px; /* Further reduced bottom margin */
+    }
+
+    .stat-card {
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 3px 5px rgba(0,0,0,0.05);
+      transition: transform 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-5px);
+    }
+
+    .stat-icon {
+      font-size: 20px;
+      padding: 10px;
+      background: #f8f9fa;
+      border-radius: 8px;
+    }
+
+    .stat-value {
+      font-size: 20px;
+      font-weight: bold;
+      color: #3498db;
+      margin-bottom: 3px;
+    }
+
+    .stat-label {
+      color: #7f8c8d;
+      font-size: 12px;
+    }
+
+    .chart-container {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      margin: 20px 0 0; /* Removed bottom margin */
+      background: white;
+      padding: 25px;
+      border-radius: 15px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
+
+    .chart-section {
+      flex: 1;
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 3px 5px rgba(0,0,0,0.05);
+      margin-bottom: 0;
+    }
+
+    .chart-section h3 {
+      text-align: center;
+      color: #2c3e50;
+      margin-bottom: 15px;
+      font-size: 18px;
+    }
+
+    svg {
+      width: 100%;
+      height: auto;
+    }
+
+    .arc:hover {
+      opacity: 0.8;
+      cursor: pointer;
+    }
+
+    .bar:hover {
+      opacity: 0.8;
+      cursor: pointer;
+    }
+
+    .tooltip {
+      position: absolute;
+      background: white;
+      padding: 8px;
+      border-radius: 5px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .insight-text {
+      text-align: center;
+      font-size: 14px;
+      color: #34495e;
+      line-height: 1.4; /* Slightly reduced line height */
+      padding: 12px;
+      background: white;
+      border-radius: 10px;
+      margin-top: 3px; /* Further reduced top margin */
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+
+    .watermark {
+      text-align: center;
+      font-size: 11px;
+      color: #95a5a6;
+      margin-top: 10px; /* Further reduced top margin */
+    }
+
+    .stats-insights-container {
+      background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+      border-radius: 15px;
+      padding: 20px;
+      margin-top: -10px; /* Negative margin to pull it up */
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+      position: relative; /* Added for better positioning */
+      z-index: 1; /* Ensure it's above the chart container */
+    }
+
+    /* Add transition for smooth spacing changes */
+    .container > * {
+      transition: all 0.3s ease;
+    }
+
+    /* Remove these since we're using a different approach */
+    .container > .stats-insights-container {
+      margin-top: -165px;
+      transform: none; /* Remove transform */
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 class="chart-title">Perbandingan Pemesanan City Hotel vs Resort Hotel</h1>
+
+    <div class="chart-container">
+      <div class="chart-section">
+        <h3>Distribusi Pemesanan Hotel</h3>
+        <svg id="pieChart" width="400" height="400"></svg>
+      </div>
+      <div class="chart-section">
+        <h3>Perbandingan Jumlah Pemesanan</h3>
+        <svg id="barChart" width="400" height="400"></svg>
+      </div>
+    </div>
+
+    <div class="stats-insights-container">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon">🏢</div>
+          <div class="stat-value">70.0%</div>
+          <div class="stat-label">City Hotel</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">🏖️</div>
+          <div class="stat-value">30.0%</div>
+          <div class="stat-label">Resort Hotel</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">📊</div>
+          <div class="stat-value">2.3:1</div>
+          <div class="stat-label">Rasio Perbandingan</div>
+        </div>
+      </div>
+
+      <div class="insight-text">
+        City Hotel mendominasi dengan <strong>70.0%</strong> dari total pemesanan, 
+        sementara Resort Hotel menyumbang <strong>30.0%</strong>. 
+        Rasio perbandingan <strong>2.3:1</strong> menunjukkan preferensi yang jelas 
+        terhadap City Hotel, kemungkinan karena lokasi yang lebih strategis.
+      </div>
+    </div>
+
+    <div class="watermark">© Data Hotel 2025</div>
+  </div>
+
+  <script>
+    // Data pemesanan hotel
+    const data = [
+      { hotel: "City Hotel", count: 700 },
+      { hotel: "Resort Hotel", count: 300 }
+    ];
+
+    // Warna untuk masing-masing jenis hotel
+    const colors = {
+      "City Hotel": "#1f77b4",   // Biru
+      "Resort Hotel": "#d62728"  // Merah
+    };
+
+    // Add tooltip
+    const tooltip = d3.select("body").append("div")
+      .attr("class", "tooltip");
+
+    // Update SVG selections
+    const svgPie = d3.select("#pieChart");
+    const svgBar = d3.select("#barChart");
+
+    const width = +svgPie.attr("width");
+    const height = +svgPie.attr("height");
+
+    // Grup untuk pie chart
+    const pieGroup = svgPie.append("g")
+      .attr("transform", `translate(200, 200)`);
+
+    // Grup untuk bar chart
+    const barGroup = svgBar.append("g")
+      .attr("transform", `translate(50, 50)`);
+
+    // Pie chart
+    const radius = 100;
+    const pie = d3.pie()
+      .value(d => d.count)
+      .sort(null);
+
+    const arc = d3.arc()
+      .innerRadius(0)
+      .outerRadius(radius);
+
+    const arcs = pieGroup.selectAll("arc")
+      .data(pie(data))
+      .enter()
+      .append("g");
+
+    arcs.append("path")
+      .attr("d", arc)
+      .attr("class", "arc")
+      .attr("fill", d => colors[d.data.hotel])
+      .attr("stroke", "white")
+      .attr("stroke-width", 2)
+      .on("mouseover", function(event, d) {
+        d3.select(this)
+          .transition()
+          .duration(200)
+          .attr("transform", function(d) {
+            const centroid = arc.centroid(d);
+            return `translate(${centroid[0] * 0.05},${centroid[1] * 0.05})`;
+          });
+
+        tooltip.transition()
+          .duration(200)
+          .style("opacity", 1);
+        
+        tooltip.html(`
+          <strong>${d.data.hotel}</strong><br>
+          Jumlah: ${d.data.count}<br>
+          Persentase: ${((d.data.count / d3.sum(data, d => d.count)) * 100).toFixed(1)}%
+        `)
+        .style("left", (event.pageX + 10) + "px")
+        .style("top", (event.pageY - 10) + "px");
+      })
+      .on("mouseout", function() {
+        d3.select(this)
+          .transition()
+          .duration(200)
+          .attr("transform", "translate(0,0)");
+
+        tooltip.transition()
+          .duration(500)
+          .style("opacity", 0);
+      });
+
+    // Label pada pie chart
+    arcs.append("text")
+      .attr("transform", d => `translate(${arc.centroid(d)})`)
+      .attr("class", "label")
+      .text(d => `${d.data.hotel} (${((d.data.count / d3.sum(data, d => d.count)) * 100).toFixed(1)}%)`);
+
+    // Bar chart
+    const xScale = d3.scaleBand()
+      .domain(data.map(d => d.hotel))
+      .range([0, 300])
+      .padding(0.4);
+
+    const yScale = d3.scaleLinear()
+      .domain([0, d3.max(data, d => d.count)])
+      .range([200, 0]);
+
+    const bars = barGroup.selectAll(".bar")
+      .data(data)
+      .enter()
+      .append("rect")
+      .attr("x", d => xScale(d.hotel))
+      .attr("y", d => yScale(d.count))
+      .attr("width", xScale.bandwidth())
+      .attr("height", d => 200 - yScale(d.count))
+      .attr("class", "bar")
+      .attr("fill", d => colors[d.hotel])
+      .on("mouseover", function(event, d) {
+        d3.select(this)
+          .transition()
+          .duration(200)
+          .attr("opacity", 0.8);
+
+        tooltip.transition()
+          .duration(200)
+          .style("opacity", 1);
+        
+        tooltip.html(`
+          <strong>${d.hotel}</strong><br>
+          Jumlah: ${d.count}<br>
+          Persentase: ${((d.count / d3.sum(data, d => d.count)) * 100).toFixed(1)}%
+        `)
+        .style("left", (event.pageX + 10) + "px")
+        .style("top", (event.pageY - 10) + "px");
+      })
+      .on("mouseout", function() {
+        d3.select(this)
+          .transition()
+          .duration(200)
+          .attr("opacity", 1);
+
+        tooltip.transition()
+          .duration(500)
+          .style("opacity", 0);
+      });
+
+    // Label pada bar chart
+    barGroup.selectAll(".bar-label")
+      .data(data)
+      .enter()
+      .append("text")
+      .attr("x", d => xScale(d.hotel) + xScale.bandwidth() / 2)
+      .attr("y", d => yScale(d.count) + (200 - yScale(d.count)) / 2)
+      .attr("class", "bar-label")
+      .text(d => d.count);
+
+    // Sumbu X
+    barGroup.append("g")
+      .attr("transform", "translate(0,200)")
+      .call(d3.axisBottom(xScale));
+
+    // Sumbu Y
+    barGroup.append("g")
+      .call(d3.axisLeft(yScale).ticks(5));
+
+    // Rasio perbandingan
+    const ratio = (data[0].count / data[1].count).toFixed(1);
+    svgBar.append("text")
+      .attr("x", width / 2)
+      .attr("y", height - 20)
+      .attr("text-anchor", "middle")
+      .attr("font-size", "14px")
+      .attr("font-weight", "bold")
+      .text(`Rasio ${data[0].hotel} : ${data[1].hotel} = ${ratio} : 1`);
+  </script>
+</body>
+</html>

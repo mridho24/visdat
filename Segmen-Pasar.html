@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <title>Analisis Segmen Pasar Pemesanan Hotel</title>
+  <script src="https://d3js.org/d3.v6.min.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      margin: 0;
+      padding: 40px;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+
+    .chart-title {
+      text-align: center;
+      font-size: 28px;
+      color: #2c3e50;
+      margin-bottom: 30px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid #eee;
+    }
+
+    .section-title {
+      color: #34495e;
+      font-size: 20px;
+      margin: 25px 0 15px;
+      padding-left: 10px;
+      border-left: 4px solid #3498db;
+    }
+
+    .chart-container {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      margin-bottom: 25px;
+    }
+
+    .bar, .city, .resort {
+      transition: opacity 0.3s ease;
+    }
+
+    .bar:hover, .city:hover, .resort:hover {
+      opacity: 0.8;
+      cursor: pointer;
+    }
+
+    .bar { fill: #3498db; }
+    .city { fill: #2ecc71; }
+    .resort { fill: #e74c3c; }
+
+    .bar-label, .label-text {
+      fill: white;
+      font-family: 'Segoe UI', sans-serif;
+      font-size: 12px;
+      text-anchor: middle;
+    }
+
+    .axis-label {
+      font-family: 'Segoe UI', sans-serif;
+      font-size: 12px;
+      color: #7f8c8d;
+    }
+
+    .tooltip {
+      position: absolute;
+      padding: 10px;
+      background: white;
+      border-radius: 5px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .legend {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin: 15px 0;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .legend-color {
+      width: 16px;
+      height: 16px;
+      border-radius: 4px;
+    }
+
+    .insights-container {
+      background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+      border-radius: 15px;
+      padding: 25px;
+      margin-top: -10px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+      position: relative;
+      z-index: 1;
+    }
+
+    .insight-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .insight-card {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .insight-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .insight-icon {
+      font-size: 24px;
+      padding: 10px;
+      background: #f8f9fa;
+      border-radius: 8px;
+    }
+
+    .insight-title {
+      color: #2c3e50;
+      margin: 0;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .insight-value {
+      font-size: 24px;
+      color: #3498db;
+      font-weight: bold;
+      margin: 10px 0;
+    }
+
+    .insight-text {
+      color: #34495e;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .trend-indicator {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      margin-top: 10px;
+    }
+
+    .trend-up {
+      background: #e8f5e9;
+      color: #2e7d32;
+    }
+
+    .trend-down {
+      background: #ffebee;
+      color: #c62828;
+    }
+
+    .insight-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin: 15px 0;
+      padding: 10px;
+      background: #f8f9fa;
+      border-radius: 8px;
+    }
+
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: #666;
+    }
+
+    .stat-value {
+      font-size: 16px;
+      color: #2c3e50;
+      font-weight: 600;
+    }
+
+    .hotel-distribution {
+      margin: 15px 0;
+    }
+
+    .distribution-bar {
+      height: 24px;
+      background: #f1f1f1;
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+    }
+
+    .city-portion {
+      height: 100%;
+      background: #3498db;
+      transition: width 0.3s ease;
+    }
+
+    .resort-portion {
+      height: 100%;
+      background: #e74c3c;
+      transition: width 0.3s ease;
+    }
+
+    .distribution-labels {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 8px;
+      font-size: 12px;
+      color: #666;
+    }
+
+    .segment-list {
+      margin: 15px 0;
+    }
+
+    .segment-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px;
+      margin: 5px 0;
+      background: #f8f9fa;
+      border-radius: 6px;
+      transition: transform 0.2s ease;
+    }
+
+    .segment-item:hover {
+      transform: translateX(5px);
+      background: #eef2f7;
+    }
+
+    .segment-name {
+      font-weight: 500;
+      color: #2c3e50;
+    }
+
+    .segment-value {
+      color: #3498db;
+      font-weight: 600;
+    }
+
+    .insight-card {
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .insight-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 class="chart-title">Analisis Segmen Pasar Pemesanan Hotel</h1>
+
+    <h2 class="section-title">Jumlah Pemesanan per Segmen Pasar</h2>
+    <div class="chart-container">
+      <svg id="barChart" width="800" height="400"></svg>
+    </div>
+
+    <h2 class="section-title">Distribusi Jenis Hotel per Segmen Pasar</h2>
+    <div class="chart-container">
+      <div class="legend">
+        <div class="legend-item">
+          <div class="legend-color" style="background: #2ecc71"></div>
+          <span>City Hotel</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background: #e74c3c"></div>
+          <span>Resort Hotel</span>
+        </div>
+      </div>
+      <svg id="stackedChart" width="800" height="400"></svg>
+    </div>
+
+    <div class="insights-container">
+      <div class="insight-grid">
+        <div class="insight-card" id="segmentCard">
+          <div class="insight-header">
+            <span class="insight-icon">🌟</span>
+            <h4 class="insight-title">Segmen Dominan</h4>
+          </div>
+          <div class="insight-value" id="dominantSegmentValue">Online TA</div>
+          <div class="insight-stats">
+            <div class="stat-item">
+              <span class="stat-label">Total Pemesanan</span>
+              <span class="stat-value" id="dominantSegmentCount">45,000</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Persentase</span>
+              <span class="stat-value" id="dominantSegmentPercentage">47.4%</span>
+            </div>
+          </div>
+          <div class="trend-indicator trend-up">↑ Market Leader</div>
+        </div>
+
+        <div class="insight-card" id="distributionCard">
+          <div class="insight-header">
+            <span class="insight-icon">📊</span>
+            <h4 class="insight-title">Distribusi Hotel</h4>
+          </div>
+          <div class="insight-value">
+            <span id="cityPercentage">66.7%</span> / <span id="resortPercentage">33.3%</span>
+          </div>
+          <div class="hotel-distribution">
+            <div class="distribution-bar">
+              <div class="city-portion" id="cityPortion"></div>
+              <div class="resort-portion" id="resortPortion"></div>
+            </div>
+            <div class="distribution-labels">
+              <span>City Hotel</span>
+              <span>Resort Hotel</span>
+            </div>
+          </div>
+          <div class="trend-indicator trend-up">↑ City Hotel Dominan</div>
+        </div>
+
+        <div class="insight-card" id="segmentationCard">
+          <div class="insight-header">
+            <span class="insight-icon">🎯</span>
+            <h4 class="insight-title">Top 3 Segmen</h4>
+          </div>
+          <div class="segment-list" id="topSegments">
+            <!-- Will be populated by JavaScript -->
+          </div>
+          <div class="trend-indicator trend-up">↑ Channels Diversity</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const segments = [
+      { segment: "Online TA", city: 30000, resort: 15000 },
+      { segment: "Offline TA/TO", city: 20000, resort: 10000 },
+      { segment: "Direct", city: 10000, resort: 5000 },
+      { segment: "Groups", city: 5000, resort: 5000 },
+      { segment: "Corporate", city: 7000, resort: 1000 },
+      { segment: "Complementary", city: 1500, resort: 500 },
+      { segment: "Aviation", city: 800, resort: 200 }
+    ];
+
+    const totalCounts = segments.map(d => ({ segment: d.segment, count: d.city + d.resort }));
+
+    // ===== Horizontal Bar Chart =====
+    const svg1 = d3.select("#barChart"),
+          margin1 = {top: 30, right: 20, bottom: 40, left: 150},
+          width1 = +svg1.attr("width") - margin1.left - margin1.right,
+          height1 = +svg1.attr("height") - margin1.top - margin1.bottom;
+
+    const g1 = svg1.append("g").attr("transform", `translate(${margin1.left},${margin1.top})`);
+
+    const y1 = d3.scaleBand()
+        .domain(totalCounts.map(d => d.segment))
+        .range([0, height1])
+        .padding(0.1);
+
+    const x1 = d3.scaleLinear()
+        .domain([0, d3.max(totalCounts, d => d.count)])
+        .range([0, width1]);
+
+    g1.append("g").call(d3.axisLeft(y1).tickSize(0)).selectAll("text").attr("class", "axis-label");
+
+    g1.append("g")
+      .attr("transform", `translate(0,${height1})`)
+      .call(d3.axisBottom(x1).ticks(5).tickFormat(d3.format(",")).tickSizeOuter(0))
+      .selectAll("text").attr("class", "axis-label");
+
+    g1.selectAll(".bar")
+      .data(totalCounts)
+      .enter().append("rect")
+        .attr("class", "bar")
+        .attr("y", d => y1(d.segment))
+        .attr("height", y1.bandwidth())
+        .attr("x", 0)
+        .attr("width", d => x1(d.count));
+
+    g1.selectAll(".bar-label")
+      .data(totalCounts)
+      .enter().append("text")
+        .attr("class", "bar-label")
+        .attr("x", d => x1(d.count) - 5)
+        .attr("y", d => y1(d.segment) + y1.bandwidth() / 2)
+        .attr("dy", ".35em")
+        .text(d => d3.format(",")(d.count));
+
+    // ===== Stacked Horizontal Bar Chart =====
+    const svg2 = d3.select("#stackedChart"),
+          margin2 = {top: 30, right: 20, bottom: 40, left: 150},
+          width2 = +svg2.attr("width") - margin2.left - margin2.right,
+          height2 = +svg2.attr("height") - margin2.top - margin2.bottom;
+
+    const g2 = svg2.append("g").attr("transform", `translate(${margin2.left},${margin2.top})`);
+
+    const y2 = d3.scaleBand()
+        .domain(segments.map(d => d.segment))
+        .range([0, height2])
+        .padding(0.1);
+
+    const x2 = d3.scaleLinear()
+        .domain([0, d3.max(segments, d => d.city + d.resort)])
+        .range([0, width2]);
+
+    g2.append("g").call(d3.axisLeft(y2).tickSize(0)).selectAll("text").attr("class", "axis-label");
+
+    g2.append("g")
+      .attr("transform", `translate(0,${height2})`)
+      .call(d3.axisBottom(x2).ticks(5).tickFormat(d3.format(",")).tickSizeOuter(0))
+      .selectAll("text").attr("class", "axis-label");
+
+    g2.selectAll(".city")
+      .data(segments)
+      .enter().append("rect")
+        .attr("class", "city")
+        .attr("y", d => y2(d.segment))
+        .attr("height", y2.bandwidth())
+        .attr("x", 0)
+        .attr("width", d => x2(d.city));
+
+    g2.selectAll(".resort")
+      .data(segments)
+      .enter().append("rect")
+        .attr("class", "resort")
+        .attr("y", d => y2(d.segment))
+        .attr("height", y2.bandwidth())
+        .attr("x", d => x2(d.city))
+        .attr("width", d => x2(d.resort));
+
+    segments.forEach(d => {
+      const total = d.city + d.resort;
+      const cityPct = (d.city / total) * 100;
+      const resortPct = (d.resort / total) * 100;
+
+      if (cityPct > 15) {
+        g2.append("text")
+          .attr("class", "label-text")
+          .attr("x", x2(d.city) / 2)
+          .attr("y", y2(d.segment) + y2.bandwidth() / 2)
+          .attr("dy", ".35em")
+          .text(`${cityPct.toFixed(1)}%`);
+      }
+
+      if (resortPct > 15) {
+        g2.append("text")
+          .attr("class", "label-text")
+          .attr("x", x2(d.city) + x2(d.resort) / 2)
+          .attr("y", y2(d.segment) + y2.bandwidth() / 2)
+          .attr("dy", ".35em")
+          .text(`${resortPct.toFixed(1)}%`);
+      }
+    });
+
+    // Add tooltip
+    const tooltip = d3.select("body").append("div")
+      .attr("class", "tooltip");
+
+    // Update hover effects for bars
+    g1.selectAll(".bar")
+      .on("mouseover", function(event, d) {
+        d3.select(this).attr("opacity", 0.8);
+        tooltip.transition()
+          .duration(200)
+          .style("opacity", 1);
+        tooltip.html(`
+          <strong>${d.segment}</strong><br>
+          Total Pemesanan: ${d3.format(",")(d.count)}
+        `)
+        .style("left", (event.pageX + 10) + "px")
+        .style("top", (event.pageY - 10) + "px");
+      })
+      .on("mouseout", function() {
+        d3.select(this).attr("opacity", 1);
+        tooltip.transition()
+          .duration(500)
+          .style("opacity", 0);
+      });
+
+    // Update hover effects for stacked bars
+    g2.selectAll(".city, .resort")
+      .on("mouseover", function(event, d) {
+        d3.select(this).attr("opacity", 0.8);
+        const type = d3.select(this).attr("class");
+        const value = type === "city" ? d.city : d.resort;
+        tooltip.transition()
+          .duration(200)
+          .style("opacity", 1);
+        tooltip.html(`
+          <strong>${d.segment}</strong><br>
+          ${type === "city" ? "City Hotel" : "Resort Hotel"}: ${d3.format(",")(value)}<br>
+          Persentase: ${((value / (d.city + d.resort)) * 100).toFixed(1)}%
+        `)
+        .style("left", (event.pageX + 10) + "px")
+        .style("top", (event.pageY - 10) + "px");
+      })
+      .on("mouseout", function() {
+        d3.select(this).attr("opacity", 1);
+        tooltip.transition()
+          .duration(500)
+          .style("opacity", 0);
+      });
+
+    // Update statistics
+    const totalBookings = d3.sum(totalCounts, d => d.count);
+    const topSegment = totalCounts.reduce((a, b) => a.count > b.count ? a : b);
+    const totalCity = d3.sum(segments, d => d.city);
+    const totalResort = d3.sum(segments, d => d.resort);
+
+    d3.select("#totalBookings").text(d3.format(",")(totalBookings));
+    d3.select("#topSegment").text(topSegment.segment);
+    d3.select("#cityVsResort").text(
+      `${((totalCity / (totalCity + totalResort)) * 100).toFixed(1)}%`
+    );
+
+    // Add this to your existing script section
+    // Update insights
+    const dominantSegment = topSegment.segment;
+    const dominantCount = topSegment.count;
+    const dominantPercentage = ((dominantCount / totalBookings) * 100).toFixed(1);
+    const hotelRatio = (totalCity / totalResort).toFixed(1);
+
+    d3.select("#dominantSegment").text(dominantSegment);
+    d3.select("#dominantPercentage").text(`${dominantPercentage}%`);
+    d3.select("#hotelPreference").text("City Hotel");
+    d3.select("#hotelRatio").text(`${hotelRatio}:1`);
+    d3.select("#totalDistribution").text(d3.format(",")(totalBookings));
+    d3.select("#segmentCount").text(segments.length);
+
+    // Add before the end of your script section
+
+    // Update insights with interactive elements
+    function updateInsights() {
+      // Sort segments by total count
+      const sortedSegments = [...segments]
+        .sort((a, b) => (b.city + b.resort) - (a.city + a.resort));
+      
+      // Update dominant segment card
+      const dominant = sortedSegments[0];
+      const dominantTotal = dominant.city + dominant.resort;
+      const dominantPct = (dominantTotal / totalBookings * 100).toFixed(1);
+      
+      d3.select("#dominantSegmentValue").text(dominant.segment);
+      d3.select("#dominantSegmentCount").text(d3.format(",")(dominantTotal));
+      d3.select("#dominantSegmentPercentage").text(`${dominantPct}%`);
+    
+      // Update distribution card
+      const cityPct = (totalCity / totalBookings * 100).toFixed(1);
+      const resortPct = (totalResort / totalBookings * 100).toFixed(1);
+      
+      d3.select("#cityPercentage").text(`${cityPct}%`);
+      d3.select("#resortPercentage").text(`${resortPct}%`);
+      d3.select("#cityPortion").style("width", `${cityPct}%`);
+      d3.select("#resortPortion").style("width", `${resortPct}%`);
+    
+      // Update top segments list
+      const topSegmentsContainer = d3.select("#topSegments");
+      topSegmentsContainer.html(""); // Clear existing content
+      
+      sortedSegments.slice(0, 3).forEach(segment => {
+        const total = segment.city + segment.resort;
+        const percentage = (total / totalBookings * 100).toFixed(1);
+        
+        topSegmentsContainer.append("div")
+          .attr("class", "segment-item")
+          .html(`
+            <span class="segment-name">${segment.segment}</span>
+            <span class="segment-value">${percentage}%</span>
+          `);
+      });
+    }
+    
+    // Add hover effects for bars that update insights
+    g1.selectAll(".bar").on("mouseover", function(event, d) {
+      // Existing tooltip code...
+      
+      // Highlight corresponding segment in insights
+      d3.selectAll(".segment-item")
+        .style("opacity", item => item.__data__.segment === d.segment ? 1 : 0.5);
+    });
+    
+    g1.selectAll(".bar").on("mouseout", function() {
+      // Existing tooltip code...
+      
+      // Reset highlights
+      d3.selectAll(".segment-item").style("opacity", 1);
+    });
+    
+    // Initialize insights
+    updateInsights();
+  </script>
+</body>
+</html>
