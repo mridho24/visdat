@@ -309,225 +309,307 @@
   </div>
 
   <script>
-    const data = [
-      {month: "January", city: 2000, resort: 1500},
-      {month: "February", city: 2200, resort: 1700},
-      {month: "March", city: 2500, resort: 2000},
-      {month: "April", city: 2800, resort: 2200},
-      {month: "May", city: 3000, resort: 2500},
-      {month: "June", city: 3500, resort: 2700},
-      {month: "July", city: 4000, resort: 3200},
-      {month: "August", city: 4200, resort: 3500},
-      {month: "September", city: 3000, resort: 2500},
-      {month: "October", city: 2700, resort: 2300},
-      {month: "November", city: 2300, resort: 1900},
-      {month: "December", city: 2100, resort: 1800},
-    ];
-
-    const margin = {top: 40, right: 60, bottom: 80, left: 60},
-          width = 960 - margin.left - margin.right,
-          height = 500 - margin.top - margin.bottom;
-
-    const svg = d3.select("svg")
-        .append("g")
-        .attr("transform", `translate(${margin.left},${margin.top})`);
-
-    const months = data.map(d => d.month);
-    const x = d3.scaleBand().domain(months).range([0, width]).padding(0.2);
-    const y = d3.scaleLinear()
-        .domain([0, d3.max(data, d => d.city + d.resort) * 1.2])
-        .nice()
-        .range([height, 0]);
-
-    const yLine = d3.scaleLinear()
-        .domain([0, d3.max(data, d => d.city + d.resort) * 1.2])
-        .range([height, 0]);
-
-    // Axes
-    svg.append("g").attr("transform", `translate(0,${height})`).call(d3.axisBottom(x).tickSize(0)).selectAll("text")
-        .attr("transform", "rotate(30)")
-        .style("text-anchor", "start");
-
-    svg.append("g").call(d3.axisLeft(y).ticks(5).tickFormat(d3.format(",")));
-
-      // Label sumbu Y
-    svg.append("text")
-    .attr("text-anchor", "middle")
-    .attr("transform", `translate(${-40}, ${height / 2}) rotate(-90)`)
-    .attr("font-size", "14px")
-    .attr("fill", "#2c3e50")
-    .text("Jumlah Pemesanan");
-
-    // Label sumbu X
-    svg.append("text")
-    .attr("text-anchor", "middle")
-    .attr("x", width / 2)
-    .attr("y", height + 60)
-    .attr("font-size", "14px")
-    .attr("fill", "#2c3e50")
-    .text("Bulan");
-
-
-
-    // Highlight highest and lowest months
-    svg.append("rect")
-      .attr("class", "highlight-max")
-      .attr("x", x("August") - x.bandwidth() / 2)
-      .attr("y", 0)
-      .attr("width", x.bandwidth() * 1.5)
-      .attr("height", height);
-
-    svg.append("rect")
-      .attr("class", "highlight-min")
-      .attr("x", x("January") - x.bandwidth() / 2)
-      .attr("y", 0)
-      .attr("width", x.bandwidth() * 1.5)
-      .attr("height", height);
-
-    // Bars
-    svg.selectAll(".bar-city")
-        .data(data)
-        .enter()
-        .append("rect")
-        .attr("class", "bar bar-city")
-        .attr("x", d => x(d.month))
-        .attr("y", d => y(d.city))
-        .attr("width", x.bandwidth()/2)
-        .attr("height", d => height - y(d.city))
-        .attr("fill", "steelblue");
-
-    svg.selectAll(".bar-resort")
-        .data(data)
-        .enter()
-        .append("rect")
-        .attr("class", "bar bar-resort")
-        .attr("x", d => x(d.month) + x.bandwidth()/2)
-        .attr("y", d => y(d.resort))
-        .attr("width", x.bandwidth()/2)
-        .attr("height", d => height - y(d.resort))
-        .attr("fill", "indianred");
-
-    // Line for total bookings
-    const line = d3.line()
-        .x(d => x(d.month) + x.bandwidth()/2)
-        .y(d => yLine(d.city + d.resort));
-
-    svg.append("path")
-        .datum(data)
-        .attr("class", "line")
-        .attr("d", line);
-
-    // Dots and labels
-    svg.selectAll(".dot")
-        .data(data)
-        .enter()
-        .append("circle")
-        .attr("class", "dot")
-        .attr("cx", d => x(d.month) + x.bandwidth()/2)
-        .attr("cy", d => yLine(d.city + d.resort))
-        .attr("r", 4)
-        .attr("fill", "green");
-
-    svg.selectAll(".label")
-        .data(data)
-        .enter()
-        .append("text")
-        .attr("x", d => x(d.month) + x.bandwidth()/2)
-        .attr("y", d => yLine(d.city + d.resort) - 10)
-        .attr("text-anchor", "middle")
-        .attr("font-size", "10px")
-        .text(d => (d.city + d.resort).toLocaleString());
-
-    // Legend
-    const legend = svg.append("g").attr("transform", `translate(${width - 150}, 10)`);
-
-    legend.append("rect").attr("x", 0).attr("y", 0).attr("width", 12).attr("height", 12).attr("fill", "steelblue");
-    legend.append("text").attr("x", 20).attr("y", 10).text("City Hotel").attr("font-size", "12px");
-
-    legend.append("rect").attr("x", 0).attr("y", 20).attr("width", 12).attr("height", 12).attr("fill", "indianred");
-    legend.append("text").attr("x", 20).attr("y", 30).text("Resort Hotel").attr("font-size", "12px");
-
-    legend.append("circle").attr("cx", 6).attr("cy", 46).attr("r", 5).attr("fill", "green");
-    legend.append("text").attr("x", 20).attr("y", 50).text("Total").attr("font-size", "12px");
-
-    // Add these new functions for interactivity
-    function showAll() {
-      updateButtons("Semua Data");
-      d3.selectAll(".bar-city").style("opacity", 1);
-      d3.selectAll(".bar-resort").style("opacity", 1);
-      d3.selectAll(".line, .dot").style("opacity", 1);
-    }
-
-    function showCity() {
-      updateButtons("City Hotel");
-      d3.selectAll(".bar-city").style("opacity", 1);
-      d3.selectAll(".bar-resort").style("opacity", 0.2);
-      d3.selectAll(".line, .dot").style("opacity", 0.2);
-    }
-
-    function showResort() {
-      updateButtons("Resort Hotel");
-      d3.selectAll(".bar-city").style("opacity", 0.2);
-      d3.selectAll(".bar-resort").style("opacity", 1);
-      d3.selectAll(".line, .dot").style("opacity", 0.2);
-    }
-
-    function showTotal() {
-      updateButtons("Total Pemesanan");
-      d3.selectAll(".bar-city, .bar-resort").style("opacity", 0.2);
-      d3.selectAll(".line, .dot").style("opacity", 1);
-    }
-
-    function updateButtons(active) {
-      d3.selectAll("button").classed("active", false);
-      d3.selectAll("button").filter(function() {
-        return d3.select(this).text() === active;
-      }).classed("active", true);
-    }
-
-    // Enhanced tooltip
-    const tooltip = d3.select("body").append("div")
-      .attr("class", "tooltip");
-
-    // Add hover effects to bars
-    svg.selectAll(".bar")
-      .on("mouseover", function(event, d) {
-        const isCity = d3.select(this).classed("bar-city");
-        tooltip.style("opacity", 1)
-          .html(`
-            <strong>${d.month}</strong><br>
-            ${isCity ? "City Hotel" : "Resort Hotel"}: 
-            ${(isCity ? d.city : d.resort).toLocaleString()} pemesanan
-          `)
-          .style("left", (event.pageX + 10) + "px")
-          .style("top", (event.pageY - 10) + "px");
-      })
-      .on("mouseout", function() {
-        tooltip.style("opacity", 0);
+    d3.csv("data/hotel_bookings_processed.csv").then(function(csvData) {
+      // Process the data to get monthly counts
+      const monthlyData = d3.group(csvData, d => d.arrival_date_month);
+      
+      const data = Array.from(monthlyData, ([month, bookings]) => {
+          const cityBookings = bookings.filter(d => d.hotel === "City Hotel").length;
+          const resortBookings = bookings.filter(d => d.hotel === "Resort Hotel").length;
+          
+          return {
+              month: month,
+              city: cityBookings,
+              resort: resortBookings
+          };
       });
 
-    // Update insights with actual numbers
-    document.getElementById("maxBookings").textContent = 
-      d3.max(data, d => d.city + d.resort).toLocaleString();
-    document.getElementById("minBookings").textContent = 
-      d3.min(data, d => d.city + d.resort).toLocaleString();
-    document.getElementById("avgCity").textContent = 
-      Math.round(d3.mean(data, d => d.city)).toLocaleString();
+      // Sort months chronologically
+      const monthOrder = [
+          "January", "February", "March", "April", "May", "June",
+          "July", "August", "September", "October", "November", "December"
+      ];
+      
+      data.sort((a, b) => monthOrder.indexOf(a.month) - monthOrder.indexOf(b.month));
 
-    // Make legend interactive
-    legend.selectAll("g")
-      .attr("class", "legend-item")
-      .style("cursor", "pointer")
-      .on("click", function(event, d) {
-        const type = d3.select(this).select("text").text();
-        if (type === "City Hotel") showCity();
-        else if (type === "Resort Hotel") showResort();
-        else showTotal();
-      });
+      // Update visualization dimensions
+      const margin = {top: 40, right: 60, bottom: 80, left: 60},
+            width = 960 - margin.left - margin.right,
+            height = 500 - margin.top - margin.bottom;
 
+      // Clear existing SVG
+      d3.select("svg").selectAll("*").remove();
+
+      const svg = d3.select("svg")
+          .append("g")
+          .attr("transform", `translate(${margin.left},${margin.top})`);
+
+      // Rest of your visualization code remains the same
+      const months = data.map(d => d.month);
+      const x = d3.scaleBand().domain(months).range([0, width]).padding(0.2);
+      const y = d3.scaleLinear()
+          .domain([0, d3.max(data, d => d.city + d.resort) * 1.2])
+          .nice()
+          .range([height, 0]);
+
+      const yLine = d3.scaleLinear()
+          .domain([0, d3.max(data, d => d.city + d.resort) * 1.2])
+          .range([height, 0]);
+
+      // Axes
+      svg.append("g").attr("transform", `translate(0,${height})`).call(d3.axisBottom(x).tickSize(0)).selectAll("text")
+          .attr("transform", "rotate(30)")
+          .style("text-anchor", "start");
+
+      svg.append("g").call(d3.axisLeft(y).ticks(5).tickFormat(d3.format(",")));
+
+        // Label sumbu Y
+      svg.append("text")
+      .attr("text-anchor", "middle")
+      .attr("transform", `translate(${-40}, ${height / 2}) rotate(-90)`)
+      .attr("font-size", "14px")
+      .attr("fill", "#2c3e50")
+      .text("Jumlah Pemesanan");
+
+      // Label sumbu X
+      svg.append("text")
+      .attr("text-anchor", "middle")
+      .attr("x", width / 2)
+      .attr("y", height + 60)
+      .attr("font-size", "14px")
+      .attr("fill", "#2c3e50")
+      .text("Bulan");
+
+      // Highlight highest and lowest months
+      svg.append("rect")
+        .attr("class", "highlight-max")
+        .attr("x", x("August") - x.bandwidth() / 2)
+        .attr("y", 0)
+        .attr("width", x.bandwidth() * 1.5)
+        .attr("height", height);
+
+      svg.append("rect")
+        .attr("class", "highlight-min")
+        .attr("x", x("January") - x.bandwidth() / 2)
+        .attr("y", 0)
+        .attr("width", x.bandwidth() * 1.5)
+        .attr("height", height);
+
+      // Bars
+      svg.selectAll(".bar-city")
+          .data(data)
+          .enter()
+          .append("rect")
+          .attr("class", "bar bar-city")
+          .attr("x", d => x(d.month))
+          .attr("y", d => y(d.city))
+          .attr("width", x.bandwidth()/2)
+          .attr("height", d => height - y(d.city))
+          .attr("fill", "steelblue");
+
+      svg.selectAll(".bar-resort")
+          .data(data)
+          .enter()
+          .append("rect")
+          .attr("class", "bar bar-resort")
+          .attr("x", d => x(d.month) + x.bandwidth()/2)
+          .attr("y", d => y(d.resort))
+          .attr("width", x.bandwidth()/2)
+          .attr("height", d => height - y(d.resort))
+          .attr("fill", "indianred");
+
+      // Line for total bookings
+      const line = d3.line()
+          .x(d => x(d.month) + x.bandwidth()/2)
+          .y(d => yLine(d.city + d.resort));
+
+      svg.append("path")
+          .datum(data)
+          .attr("class", "line")
+          .attr("d", line);
+
+      // Dots and labels
+      svg.selectAll(".dot")
+          .data(data)
+          .enter()
+          .append("circle")
+          .attr("class", "dot")
+          .attr("cx", d => x(d.month) + x.bandwidth()/2)
+          .attr("cy", d => yLine(d.city + d.resort))
+          .attr("r", 4)
+          .attr("fill", "green");
+
+      svg.selectAll(".label")
+          .data(data)
+          .enter()
+          .append("text")
+          .attr("x", d => x(d.month) + x.bandwidth()/2)
+          .attr("y", d => yLine(d.city + d.resort) - 10)
+          .attr("text-anchor", "middle")
+          .attr("font-size", "10px")
+          .text(d => (d.city + d.resort).toLocaleString());
+
+      // Legend
+      const legend = svg.append("g").attr("transform", `translate(${width - 150}, 10)`);
+
+      legend.append("rect").attr("x", 0).attr("y", 0).attr("width", 12).attr("height", 12).attr("fill", "steelblue");
+      legend.append("text").attr("x", 20).attr("y", 10).text("City Hotel").attr("font-size", "12px");
+
+      legend.append("rect").attr("x", 0).attr("y", 20).attr("width", 12).attr("height", 12).attr("fill", "indianred");
+      legend.append("text").attr("x", 20).attr("y", 30).text("Resort Hotel").attr("font-size", "12px");
+
+      legend.append("circle").attr("cx", 6).attr("cy", 46).attr("r", 5).attr("fill", "green");
+      legend.append("text").attr("x", 20).attr("y", 50).text("Total").attr("font-size", "12px");
+
+      // Add these new functions for interactivity
+      function showAll() {
+        updateButtons("Semua Data");
+        d3.selectAll(".bar-city").style("opacity", 1);
+        d3.selectAll(".bar-resort").style("opacity", 1);
+        d3.selectAll(".line, .dot").style("opacity", 1);
+      }
+
+      function showCity() {
+        updateButtons("City Hotel");
+        d3.selectAll(".bar-city").style("opacity", 1);
+        d3.selectAll(".bar-resort").style("opacity", 0.2);
+        d3.selectAll(".line, .dot").style("opacity", 0.2);
+      }
+
+      function showResort() {
+        updateButtons("Resort Hotel");
+        d3.selectAll(".bar-city").style("opacity", 0.2);
+        d3.selectAll(".bar-resort").style("opacity", 1);
+        d3.selectAll(".line, .dot").style("opacity", 0.2);
+      }
+
+      function showTotal() {
+        updateButtons("Total Pemesanan");
+        d3.selectAll(".bar-city, .bar-resort").style("opacity", 0.2);
+        d3.selectAll(".line, .dot").style("opacity", 1);
+      }
+
+      function updateButtons(active) {
+        d3.selectAll("button").classed("active", false);
+        d3.selectAll("button").filter(function() {
+          return d3.select(this).text() === active;
+        }).classed("active", true);
+      }
+
+      // Enhanced tooltip
+      const tooltip = d3.select("body").append("div")
+        .attr("class", "tooltip");
+
+      // Add hover effects to bars
+      svg.selectAll(".bar")
+        .on("mouseover", function(event, d) {
+          const isCity = d3.select(this).classed("bar-city");
+          tooltip.style("opacity", 1)
+            .html(`
+              <strong>${d.month}</strong><br>
+              ${isCity ? "City Hotel" : "Resort Hotel"}: 
+              ${(isCity ? d.city : d.resort).toLocaleString()} pemesanan
+            `)
+            .style("left", (event.pageX + 10) + "px")
+            .style("top", (event.pageY - 10) + "px");
+        })
+        .on("mouseout", function() {
+          tooltip.style("opacity", 0);
+        });
+
+      // Update insights with actual numbers
+      document.getElementById("maxBookings").textContent = 
+        d3.max(data, d => d.city + d.resort).toLocaleString();
+      document.getElementById("minBookings").textContent = 
+        d3.min(data, d => d.city + d.resort).toLocaleString();
+      document.getElementById("avgCity").textContent = 
+        Math.round(d3.mean(data, d => d.city)).toLocaleString();
+
+      // Make legend interactive
+      legend.selectAll("g")
+        .attr("class", "legend-item")
+        .style("cursor", "pointer")
+        .on("click", function(event, d) {
+          const type = d3.select(this).select("text").text();
+          if (type === "City Hotel") showCity();
+          else if (type === "Resort Hotel") showResort();
+          else showTotal();
+        });
+
+      // Find peak and low season months
+      const peakMonth = data.reduce((a, b) => 
+        (a.city + a.resort > b.city + b.resort) ? a : b);
+      const lowMonth = data.reduce((a, b) => 
+        (a.city + a.resort < b.city + b.resort) ? a : b);
+
+      // Update descriptions
+      document.querySelector("#maxBookings")
+        .closest(".insight-card")
+        .querySelector(".insight-description")
+        .innerHTML = `Mencapai puncak di bulan <strong>${peakMonth.month}</strong> dengan ${peakMonth.city + peakMonth.resort} pemesanan`;
+
+      document.querySelector("#minBookings")
+        .closest(".insight-card")
+        .querySelector(".insight-description")
+        .innerHTML = `Terendah di bulan <strong>${lowMonth.month}</strong> dengan ${lowMonth.city + lowMonth.resort} pemesanan`;
+
+      updateInsights(data);
+
+    }).catch(function(error) {
+      console.error("Error loading the CSV file:", error);
+      alert("Error loading data. Please check if the CSV file exists in the correct location.");
+    });
+
+    function updateInsights(data) {
+      // Find peak month
+      const peakMonth = data.reduce((a, b) => 
+          ((a.city + a.resort) > (b.city + b.resort)) ? a : b);
+      
+      // Find lowest month
+      const lowMonth = data.reduce((a, b) => 
+          ((a.city + a.resort) < (b.city + b.resort)) ? a : b);
+      
+      // Calculate average city hotel bookings
+      const avgCityBookings = Math.round(d3.mean(data, d => d.city));
+      
+      // Find seasonal trend (June-August)
+      const summerMonths = data.filter(d => 
+          ["June", "July", "August"].includes(d.month));
+      const summerAvg = d3.mean(summerMonths, d => d.city + d.resort);
+      const otherMonths = data.filter(d => 
+          !["June", "July", "August"].includes(d.month));
+      const otherAvg = d3.mean(otherMonths, d => d.city + d.resort);
+      const seasonalIncrease = ((summerAvg - otherAvg) / otherAvg * 100).toFixed(1);
+  
+      // Update insight cards
+      // Peak Bookings
+      document.getElementById("maxBookings")
+          .textContent = (peakMonth.city + peakMonth.resort).toLocaleString();
+      document.querySelector("#maxBookings + .insight-description")
+          .innerHTML = `Mencapai puncak di bulan <strong>${peakMonth.month}</strong> dengan ${(peakMonth.city + peakMonth.resort).toLocaleString()} pemesanan`;
+  
+      // Lowest Bookings
+      document.getElementById("minBookings")
+          .textContent = (lowMonth.city + lowMonth.resort).toLocaleString();
+      document.querySelector("#minBookings + .insight-description")
+          .innerHTML = `Terendah di bulan <strong>${lowMonth.month}</strong> dengan ${(lowMonth.city + lowMonth.resort).toLocaleString()} pemesanan`;
+  
+      // Average City Hotel
+      document.getElementById("avgCity")
+          .textContent = avgCityBookings.toLocaleString();
+      document.querySelector("#avgCity + .insight-description")
+          .textContent = `Rata-rata ${avgCityBookings.toLocaleString()} pemesanan per bulan di City Hotel`;
+  
+      // Seasonal Trend
+      const seasonalValue = document.querySelector(".insight-card:last-child .insight-value");
+      seasonalValue.textContent = "Juni-Agustus";
+      document.querySelector(".insight-card:last-child .insight-description")
+          .innerHTML = `Peningkatan ${seasonalIncrease}% pada musim panas dibanding rata-rata bulan lainnya`;
+  }
   </script>
-    <a href="index.html" class="back-button">
-        <span>←</span> Kembali ke Menu
-    </a>
+  <a href="index.html" class="page-back-button">
+    <i class="fas fa-arrow-left"></i>
+    <span>Kembali ke Home</span>
+</a>
 </body>
 </html>

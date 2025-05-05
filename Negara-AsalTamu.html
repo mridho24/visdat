@@ -186,7 +186,7 @@
                     <div class="stats">
                         <div class="stat-item">
                             <span class="stat-label">Region Dominan</span>
-                            <span class="stat-value">Eropa (90.4%)</span>
+                            <span class="stat-value">Eropa (76.3%)</span>
                         </div>
                         <div class="stat-item">
                             <span class="stat-label">Total Region</span>
@@ -241,7 +241,7 @@
                         <span class="insight-icon">📊</span>
                         <h4 class="insight-title">Rasio</h4>
                     </div>
-                    <div class="insight-value" id="ratioValue">4.0 : 1</div>
+                    <div class="insight-value" id="ratioValue">4 : 1</div>
                     <p class="insight-text" id="ratioText">
                         Portugal vs Inggris
                     </p>
@@ -251,327 +251,398 @@
     </div>
 
     <script>
-        // Data preparation
-        const countryData = [
-            { code: 'PRT', name: 'Portugal', count: 48478, percentage: 40.8 },
-            { code: 'GBR', name: 'Inggris (UK)', count: 12120, percentage: 10.2 },
-            { code: 'FRA', name: 'Prancis', count: 10401, percentage: 8.8 },
-            { code: 'ESP', name: 'Spanyol', count: 8560, percentage: 7.2 },
-            { code: 'DEU', name: 'Jerman', count: 7285, percentage: 6.1 },
-            { code: 'ITA', name: 'Italia', count: 3761, percentage: 3.2 },
-            { code: 'IRL', name: 'Irlandia', count: 3374, percentage: 2.8 },
-            { code: 'BEL', name: 'Belgia', count: 2342, percentage: 2.0 },
-            { code: 'BRA', name: 'Brasil', count: 2222, percentage: 1.9 },
-            { code: 'NLD', name: 'Belanda', count: 2103, percentage: 1.8 }
-        ];
-
-        const regionData = [
-            { region: 'Eropa', count: 107800, percentage: 90.4 },
-            { region: 'Amerika', count: 4916, percentage: 4.1 },
-            { region: 'Asia', count: 3684, percentage: 3.1 },
-            { region: 'Lainnya', count: 3200, percentage: 2.4 }
-        ];
-
-        // Set up dimensions and margins
-        const margin = { top: 40, right: 30, bottom: 80, left: 150 };
-        const barChartWidth = 900 - margin.left - margin.right;
-        const barChartHeight = 400 - margin.top - margin.bottom;
-        const pieChartWidth = 400;
-        const pieChartHeight = 400;
-        const pieRadius = Math.min(pieChartWidth, pieChartHeight) / 2 - 20;
-
-        // Color scales
-        const colorScale = d3.scaleSequential(d3.interpolateViridis)
-            .domain([0, countryData.length - 1]);
-
-        const regionColor = d3.scaleOrdinal()
-            .domain(regionData.map(d => d.region))
-            .range(['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728']);
-
-        // Tooltip setup
-        const tooltip = d3.select("body").append("div")
-            .attr("class", "tooltip")
-            .style("opacity", 0);
-
-        // 1. Top Countries Bar Chart
-        const barSvg = d3.select("#topCountriesChart")
-            .append("svg")
-            .attr("width", barChartWidth + margin.left + margin.right)
-            .attr("height", barChartHeight + margin.top + margin.bottom)
-            .append("g")
-            .attr("transform", `translate(${margin.left},${margin.top})`);
-
-        // X scale
-        const x = d3.scaleLinear()
-            .domain([0, d3.max(countryData, d => d.count)])
-            .range([0, barChartWidth]);
-
-        // Y scale
-        const y = d3.scaleBand()
-            .domain(countryData.map(d => d.name))
-            .range([0, barChartHeight])
-            .padding(0.2);
-
-        // Add bars
-        barSvg.selectAll(".bar")
-            .data(countryData)
-            .enter()
-            .append("rect")
-            .attr("class", "bar")
-            .attr("x", 0)
-            .attr("y", d => y(d.name))
-            .attr("width", d => x(d.count))
-            .attr("height", y.bandwidth())
-            .attr("fill", (d, i) => colorScale(i))
-            .on("mouseover", function(event, d) {
-                tooltip.transition()
-                    .duration(200)
-                    .style("opacity", .9);
-                tooltip.html(`${d.name}<br>Jumlah: ${d.count.toLocaleString()}<br>Persentase: ${d.percentage}%`)
-                    .style("left", (event.pageX + 10) + "px")
-                    .style("top", (event.pageY - 28) + "px");
-                // Update insights
-                updateInsights(d);
-                
-                // Highlight bar
-                d3.select(this).attr("opacity", 0.7);
+        // Replace the static data preparation with CSV loading
+        d3.csv("data/hotel_bookings_processed.csv").then(function(csvData) {
+            // Process country data
+            const countryGroups = d3.group(csvData, d => d.country);
+            const totalBookings = csvData.length;
+            
+            const countryData = Array.from(countryGroups, ([name, bookings]) => {
+                const count = bookings.length;
+                return {
+                    code: name,  // Using country code from CSV
+                    name: getCountryName(name), // Function to convert code to name
+                    count: count,
+                    percentage: ((count / totalBookings) * 100).toFixed(1)
+                };
             })
-            .on("mouseout", function() {
-                tooltip.transition()
-                    .duration(500)
-                    .style("opacity", 0);
-                // Reset bar
-                d3.select(this).attr("opacity", 1);
-                
-                // Reset insights to default (Portugal)
-                updateInsights(countryData[0]);
-            });
+            .sort((a, b) => b.count - a.count)
+            .slice(0, 10); // Get top 10 countries
 
-        // Add value labels
-        barSvg.selectAll(".label")
-            .data(countryData)
-            .enter()
-            .append("text")
-            .attr("class", "label")
-            .attr("x", d => x(d.count) + 5)
-            .attr("y", d => y(d.name) + y.bandwidth() / 2)
-            .attr("dy", ".35em")
-            .text(d => `${d.count.toLocaleString()} (${d.percentage}%)`)
-            .style("font-size", "12px")
-            .style("fill", "#555");
+            // Process region data
+            const regionMapping = {
+                'PRT': 'Eropa', 'GBR': 'Eropa', 'FRA': 'Eropa', 'ESP': 'Eropa',
+                'DEU': 'Eropa', 'ITA': 'Eropa', 'BRA': 'Amerika',
+                // Add more mappings as needed
+            };
 
-        // Add axes for the bar chart
-            barSvg.append("g")
-            .attr("class", "x axis")
-            .attr("transform", `translate(0,${barChartHeight})`)
-            .call(d3.axisBottom(x).ticks(5).tickFormat(d => d.toLocaleString()))
-            .selectAll("text")
-            .style("text-anchor", "end")
-            .attr("dx", "-.8em")
-            .attr("dy", ".15em")
-            .attr("transform", "rotate(-45)");
+            const regionGroups = d3.group(csvData, d => regionMapping[d.country] || 'Lainnya');
+            const regionData = Array.from(regionGroups, ([region, bookings]) => ({
+                region: region,
+                count: bookings.length,
+                percentage: ((bookings.length / totalBookings) * 100).toFixed(1)
+            }))
+            .sort((a, b) => b.count - a.count);
 
-            // Add label for the X axis
-            barSvg.append("text")
-            .attr("x", barChartWidth / 2)
-            .attr("y", barChartHeight + margin.bottom - 10)
-            .style("text-anchor", "middle")
-            .style("font-size", "14px")
-            .text("Jumlah Tamu");
+            // Helper function to convert country codes to names
+            function getCountryName(code) {
+                const countryNames = {
+                    'PRT': 'Portugal',
+                    'GBR': 'Inggris (UK)',
+                    'FRA': 'Prancis',
+                    'ESP': 'Spanyol',
+                    'DEU': 'Jerman',
+                    'ITA': 'Italia',
+                    'IRL': 'Irlandia',
+                    'BEL': 'Belgia',
+                    'BRA': 'Brasil',
+                    'NLD': 'Belanda'
+                    // Add more mappings as needed
+                };
+                return countryNames[code] || code;
+            }
 
-            // Add Y axis
-            barSvg.append("g")
-            .attr("class", "y axis")
-            .call(d3.axisLeft(y));
+            // Rest of your visualization code remains the same
+            // Set up dimensions and margins
+            const margin = { top: 40, right: 30, bottom: 80, left: 150 };
+            const barChartWidth = 900 - margin.left - margin.right;
+            const barChartHeight = 400 - margin.top - margin.bottom;
+            const pieChartWidth = 400;
+            const pieChartHeight = 400;
+            const pieRadius = Math.min(pieChartWidth, pieChartHeight) / 2 - 20;
 
-            // Add label for the Y axis
-            barSvg.append("text")
-            .attr("transform", "rotate(-90)")
-            .attr("x", -barChartHeight / 2)
-            .attr("y", -margin.left + 20)
-            .style("text-anchor", "middle")
-            .style("font-size", "14px")
-            .text("Negara Asal Tamu");
+            // Color scales
+            const colorScale = d3.scaleSequential(d3.interpolateViridis)
+                .domain([0, countryData.length - 1]);
 
-        // 2. Region Pie Chart
-        const pieSvg = d3.select("#regionChart")
-            .append("svg")
-            .attr("width", pieChartWidth)
-            .attr("height", pieChartHeight)
-            .append("g")
-            .attr("transform", `translate(${pieChartWidth / 2},${pieChartHeight / 2})`);
+            const regionColor = d3.scaleOrdinal()
+                .domain(regionData.map(d => d.region))
+                .range(['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728']);
 
-        const pie = d3.pie()
-            .value(d => d.count)
-            .sort(null);
+            // Tooltip setup
+            const tooltip = d3.select("body").append("div")
+                .attr("class", "tooltip")
+                .style("opacity", 0);
 
-        const arc = d3.arc()
-            .innerRadius(0)
-            .outerRadius(pieRadius);
+            // 1. Top Countries Bar Chart
+            const barSvg = d3.select("#topCountriesChart")
+                .append("svg")
+                .attr("width", barChartWidth + margin.left + margin.right)
+                .attr("height", barChartHeight + margin.top + margin.bottom)
+                .append("g")
+                .attr("transform", `translate(${margin.left},${margin.top})`);
 
-        const arcs = pieSvg.selectAll(".arc")
-            .data(pie(regionData))
-            .enter()
-            .append("g")
-            .attr("class", "arc");
+            // X scale
+            const x = d3.scaleLinear()
+                .domain([0, d3.max(countryData, d => d.count)])
+                .range([0, barChartWidth]);
 
-        arcs.append("path")
-            .attr("d", arc)
-            .attr("fill", d => regionColor(d.data.region))
-            .attr("stroke", "white")
-            .attr("stroke-width", 1)
-            .on("mouseover", function(event, d) {
-                d3.select(this).attr("stroke-width", 2);
-                tooltip.transition()
-                    .duration(200)
-                    .style("opacity", .9);
-                tooltip.html(`${d.data.region}<br>Jumlah: ${d.data.count.toLocaleString()}<br>Persentase: ${d.data.percentage}%`)
-                    .style("left", (event.pageX + 10) + "px")
-                    .style("top", (event.pageY - 28) + "px");
+            // Y scale
+            const y = d3.scaleBand()
+                .domain(countryData.map(d => d.name))
+                .range([0, barChartHeight])
+                .padding(0.2);
+
+            // Add bars
+            barSvg.selectAll(".bar")
+                .data(countryData)
+                .enter()
+                .append("rect")
+                .attr("class", "bar")
+                .attr("x", 0)
+                .attr("y", d => y(d.name))
+                .attr("width", d => x(d.count))
+                .attr("height", y.bandwidth())
+                .attr("fill", (d, i) => colorScale(i))
+                .on("mouseover", function(event, d) {
+                    tooltip.transition()
+                        .duration(200)
+                        .style("opacity", .9);
+                    tooltip.html(`${d.name}<br>Jumlah: ${d.count.toLocaleString()}<br>Persentase: ${d.percentage}%`)
+                        .style("left", (event.pageX + 10) + "px")
+                        .style("top", (event.pageY - 28) + "px");
+                    // Update insights
+                    updateInsights(d);
+                    
+                    // Highlight bar
+                    d3.select(this).attr("opacity", 0.7);
+                })
+                .on("mouseout", function() {
+                    tooltip.transition()
+                        .duration(500)
+                        .style("opacity", 0);
+                    // Reset bar
+                    d3.select(this).attr("opacity", 1);
+                    
+                    // Reset insights to default (Portugal)
+                    updateInsights(countryData[0]);
+                });
+
+            // Add value labels
+            barSvg.selectAll(".label")
+                .data(countryData)
+                .enter()
+                .append("text")
+                .attr("class", "label")
+                .attr("x", d => x(d.count) + 5)
+                .attr("y", d => y(d.name) + y.bandwidth() / 2)
+                .attr("dy", ".35em")
+                .text(d => `${d.count.toLocaleString()} (${d.percentage}%)`)
+                .style("font-size", "12px")
+                .style("fill", "#555");
+
+            // Add axes for the bar chart
+                barSvg.append("g")
+                .attr("class", "x axis")
+                .attr("transform", `translate(0,${barChartHeight})`)
+                .call(d3.axisBottom(x).ticks(5).tickFormat(d => d.toLocaleString()))
+                .selectAll("text")
+                .style("text-anchor", "end")
+                .attr("dx", "-.8em")
+                .attr("dy", ".15em")
+                .attr("transform", "rotate(-45)");
+
+                // Add label for the X axis
+                barSvg.append("text")
+                .attr("x", barChartWidth / 2)
+                .attr("y", barChartHeight + margin.bottom - 10)
+                .style("text-anchor", "middle")
+                .style("font-size", "14px")
+                .text("Jumlah Tamu");
+
+                // Add Y axis
+                barSvg.append("g")
+                .attr("class", "y axis")
+                .call(d3.axisLeft(y));
+
+                // Add label for the Y axis
+                barSvg.append("text")
+                .attr("transform", "rotate(-90)")
+                .attr("x", -barChartHeight / 2)
+                .attr("y", -margin.left + 20)
+                .style("text-anchor", "middle")
+                .style("font-size", "14px")
+                .text("Negara Asal Tamu");
+
+            // 2. Region Pie Chart
+            const pieSvg = d3.select("#regionChart")
+                .append("svg")
+                .attr("width", pieChartWidth)
+                .attr("height", pieChartHeight)
+                .append("g")
+                .attr("transform", `translate(${pieChartWidth / 2},${pieChartHeight / 2})`);
+
+            const pie = d3.pie()
+                .value(d => d.count)
+                .sort(null);
+
+            const arc = d3.arc()
+                .innerRadius(0)
+                .outerRadius(pieRadius);
+
+            const arcs = pieSvg.selectAll(".arc")
+                .data(pie(regionData))
+                .enter()
+                .append("g")
+                .attr("class", "arc");
+
+            arcs.append("path")
+                .attr("d", arc)
+                .attr("fill", d => regionColor(d.data.region))
+                .attr("stroke", "white")
+                .attr("stroke-width", 1)
+                .on("mouseover", function(event, d) {
+                    d3.select(this).attr("stroke-width", 2);
+                    tooltip.transition()
+                        .duration(200)
+                        .style("opacity", .9);
+                    tooltip.html(`${d.data.region}<br>Jumlah: ${d.data.count.toLocaleString()}<br>Persentase: ${d.data.percentage}%`)
+                        .style("left", (event.pageX + 10) + "px")
+                        .style("top", (event.pageY - 28) + "px");
+                    // Update region insights
+                    d3.select("#regionValue").text(d.data.region)
+                    d3.select("#regionText").html(
+                        `${d.data.percentage}% dari total pemesanan<br>` +
+                        `<span style="font-size: 12px; color: #666">${d.data.count.toLocaleString()} pemesanan</span>`
+                    );
+                })
+                .on("mouseout", function() {
+                    d3.select(this).attr("stroke-width", 1);
+                    tooltip.transition()
+                        .duration(500)
+                        .style("opacity", 0);
+                    // Reset region insights to default (Europe)
+                    d3.select("#regionValue").text("Eropa")
+                    d3.select("#regionText").html(
+                        `90.4% dari total pemesanan<br>` +
+                        `<span style="font-size: 12px; color: #666">${regionData[0].count.toLocaleString()} pemesanan</span>`
+                    );
+                });
+
+            // Add labels to pie chart
+            arcs.append("text")
+                .attr("transform", d => `translate(${arc.centroid(d)})`)
+                .attr("dy", "0.35em")
+                .attr("text-anchor", "middle")
+                .text(d => `${d.data.region} (${d.data.percentage}%)`)
+                .style("font-size", "12px")
+                .style("fill", "white");
+
+            // Add pie chart title
+            pieSvg.append("text")
+                .attr("x", 0)
+                .attr("y", -pieChartHeight / 2 + 20)
+                .attr("text-anchor", "middle")
+                .style("font-size", "16px")
+                .style("font-weight", "bold")
+                .text("Distribusi Pemesanan berdasarkan Region");
+
+            // 3. Country Info Table
+            const tableBody = d3.select("#countryTable tbody");
+            
+            const rows = tableBody.selectAll("tr")
+                .data(countryData)
+                .enter()
+                .append("tr");
+
+            rows.append("td").text(d => d.name);
+            rows.append("td").text(d => d.count.toLocaleString());
+            rows.append("td").text(d => d.percentage + "%");
+            rows.append("td").text(d => d.code);
+
+            // Highlight Portugal row
+            rows.filter(d => d.code === 'PRT')
+                .selectAll("td")
+                .style("font-weight", "bold")
+                .style("background-color", "#D9E1F2");
+
+            // Interactive insights update functions
+            function updateInsights(data) {
+                // Update country insights
+                d3.select("#countryValue").text(data.name)
+                d3.select("#countryText").html(
+                    `${data.percentage}% dari total pemesanan<br>` +
+                    `<span style="font-size: 12px; color: #666">${data.count.toLocaleString()} pemesanan</span>`
+                );
+
+                // Find region data
+                const region = regionData.find(r => {
+                    if (data.code === 'PRT') return r.region === 'Eropa';
+                    if (data.code === 'BRA') return r.region === 'Amerika';
+                    // Add more conditions as needed
+                    return r.region === 'Eropa'; // Default to Europe for this example
+                });
+
                 // Update region insights
-                d3.select("#regionValue").text(d.data.region)
+                d3.select("#regionValue").text(region.region)
                 d3.select("#regionText").html(
-                    `${d.data.percentage}% dari total pemesanan<br>` +
-                    `<span style="font-size: 12px; color: #666">${d.data.count.toLocaleString()} pemesanan</span>`
+                    `${region.percentage}% dari total pemesanan<br>` +
+                    `<span style="font-size: 12px; color: #666">${region.count.toLocaleString()} pemesanan</span>`
                 );
-            })
-            .on("mouseout", function() {
-                d3.select(this).attr("stroke-width", 1);
-                tooltip.transition()
-                    .duration(500)
-                    .style("opacity", 0);
-                // Reset region insights to default (Europe)
-                d3.select("#regionValue").text("Eropa")
-                d3.select("#regionText").html(
-                    `90.4% dari total pemesanan<br>` +
-                    `<span style="font-size: 12px; color: #666">${regionData[0].count.toLocaleString()} pemesanan</span>`
+
+                // Calculate and update ratio
+                const portugal = countryData.find(c => c.code === 'PRT');
+                const ratio = (data.count / portugal.count).toFixed(2);
+                d3.select("#ratioValue").text(`${ratio} : 1`)
+                d3.select("#ratioText").html(
+                    `${data.name} vs Portugal<br>` +
+                    `<span style="font-size: 12px; color: #666">${data.count.toLocaleString()} : ${portugal.count.toLocaleString()}</span>`
                 );
-            });
+            }
 
-        // Add labels to pie chart
-        arcs.append("text")
-            .attr("transform", d => `translate(${arc.centroid(d)})`)
-            .attr("dy", "0.35em")
-            .attr("text-anchor", "middle")
-            .text(d => `${d.data.region} (${d.data.percentage}%)`)
-            .style("font-size", "12px")
-            .style("fill", "white");
+            // Add interactivity to bars
+            barSvg.selectAll(".bar")
+                .on("mouseover", function(event, d) {
+                    // Existing tooltip code
+                    // ...
 
-        // Add pie chart title
-        pieSvg.append("text")
-            .attr("x", 0)
-            .attr("y", -pieChartHeight / 2 + 20)
-            .attr("text-anchor", "middle")
-            .style("font-size", "16px")
-            .style("font-weight", "bold")
-            .text("Distribusi Pemesanan berdasarkan Region");
+                    // Update insights
+                    updateInsights(d);
+                    
+                    // Highlight bar
+                    d3.select(this).attr("opacity", 0.7);
+                })
+                .on("mouseout", function() {
+                    // Existing tooltip code
+                    // ...
 
-        // 3. Country Info Table
-        const tableBody = d3.select("#countryTable tbody");
-        
-        const rows = tableBody.selectAll("tr")
-            .data(countryData)
-            .enter()
-            .append("tr");
+                    // Reset bar
+                    d3.select(this).attr("opacity", 1);
+                    
+                    // Reset insights to default (Portugal)
+                    updateInsights(countryData[0]);
+                });
 
-        rows.append("td").text(d => d.name);
-        rows.append("td").text(d => d.count.toLocaleString());
-        rows.append("td").text(d => d.percentage + "%");
-        rows.append("td").text(d => d.code);
+            // Add interactivity to pie chart segments
+            arcs.selectAll("path")
+                .on("mouseover", function(event, d) {
+                    // Existing tooltip code
+                    // ...
 
-        // Highlight Portugal row
-        rows.filter(d => d.code === 'PRT')
-            .selectAll("td")
-            .style("font-weight", "bold")
-            .style("background-color", "#D9E1F2");
+                    // Update region insights
+                    d3.select("#regionValue").text(d.data.region)
+                    d3.select("#regionText").html(
+                        `${d.data.percentage}% dari total pemesanan<br>` +
+                        `<span style="font-size: 12px; color: #666">${d.data.count.toLocaleString()} pemesanan</span>`
+                    );
+                })
+                .on("mouseout", function() {
+                    // Existing tooltip code
+                    // ...
 
-        // Interactive insights update functions
-        function updateInsights(data) {
-            // Update country insights
-            d3.select("#countryValue").text(data.name)
-            d3.select("#countryText").html(
-                `${data.percentage}% dari total pemesanan<br>` +
-                `<span style="font-size: 12px; color: #666">${data.count.toLocaleString()} pemesanan</span>`
-            );
+                    // Reset region insights to default (Europe)
+                    d3.select("#regionValue").text("Eropa")
+                    d3.select("#regionText").html(
+                        `90.4% dari total pemesanan<br>` +
+                        `<span style="font-size: 12px; color: #666">${regionData[0].count.toLocaleString()} pemesanan</span>`
+                    );
+                });
 
-            // Find region data
-            const region = regionData.find(r => {
-                if (data.code === 'PRT') return r.region === 'Eropa';
-                if (data.code === 'BRA') return r.region === 'Amerika';
-                // Add more conditions as needed
-                return r.region === 'Eropa'; // Default to Europe for this example
-            });
+            // Initialize with default values
+            updateInsights(countryData[0]);
+            updateInitialInsights(countryData, regionData);
 
-            // Update region insights
-            d3.select("#regionValue").text(region.region)
-            d3.select("#regionText").html(
-                `${region.percentage}% dari total pemesanan<br>` +
-                `<span style="font-size: 12px; color: #666">${region.count.toLocaleString()} pemesanan</span>`
-            );
+        }).catch(function(error) {
+            console.error("Error loading the CSV file:", error);
+            alert("Error loading data. Please check if the CSV file exists in the correct location.");
+        });
 
-            // Calculate and update ratio
-            const portugal = countryData.find(c => c.code === 'PRT');
-            const ratio = (data.count / portugal.count).toFixed(2);
-            d3.select("#ratioValue").text(`${ratio} : 1`)
-            d3.select("#ratioText").html(
-                `${data.name} vs Portugal<br>` +
-                `<span style="font-size: 12px; color: #666">${data.count.toLocaleString()} : ${portugal.count.toLocaleString()}</span>`
-            );
+        function updateInitialInsights(countryData, regionData) {
+            // Get the dominant country (first in sorted countryData)
+            const dominantCountry = countryData[0];
+            
+            // Update country insight
+            d3.select("#countryValue")
+                .text(dominantCountry.name);
+            d3.select("#countryText")
+                .html(`${dominantCountry.percentage}% dari total pemesanan<br>` +
+                      `<span style="font-size: 12px; color: #666">${dominantCountry.count.toLocaleString()} pemesanan</span>`);
+
+            // Get the largest region
+            const dominantRegion = regionData[0];
+            
+            // Update region insight
+            d3.select("#regionValue")
+                .text(dominantRegion.region);
+            d3.select("#regionText")
+                .html(`${dominantRegion.percentage}% dari total pemesanan<br>` +
+                      `<span style="font-size: 12px; color: #666">${dominantRegion.count.toLocaleString()} pemesanan</span>`);
+
+            // Calculate ratio between top two countries
+            const secondCountry = countryData[1];
+            const ratio = (dominantCountry.count / secondCountry.count).toFixed(2);
+            
+            // Update ratio insight
+            d3.select("#ratioValue")
+                .text(`${ratio} : 1`);
+            d3.select("#ratioText")
+                .html(`${dominantCountry.name} vs ${secondCountry.name}<br>` +
+                      `<span style="font-size: 12px; color: #666">${dominantCountry.count.toLocaleString()} : ${secondCountry.count.toLocaleString()}</span>`);
         }
-
-        // Add interactivity to bars
-        barSvg.selectAll(".bar")
-            .on("mouseover", function(event, d) {
-                // Existing tooltip code
-                // ...
-
-                // Update insights
-                updateInsights(d);
-                
-                // Highlight bar
-                d3.select(this).attr("opacity", 0.7);
-            })
-            .on("mouseout", function() {
-                // Existing tooltip code
-                // ...
-
-                // Reset bar
-                d3.select(this).attr("opacity", 1);
-                
-                // Reset insights to default (Portugal)
-                updateInsights(countryData[0]);
-            });
-
-        // Add interactivity to pie chart segments
-        arcs.selectAll("path")
-            .on("mouseover", function(event, d) {
-                // Existing tooltip code
-                // ...
-
-                // Update region insights
-                d3.select("#regionValue").text(d.data.region)
-                d3.select("#regionText").html(
-                    `${d.data.percentage}% dari total pemesanan<br>` +
-                    `<span style="font-size: 12px; color: #666">${d.data.count.toLocaleString()} pemesanan</span>`
-                );
-            })
-            .on("mouseout", function() {
-                // Existing tooltip code
-                // ...
-
-                // Reset region insights to default (Europe)
-                d3.select("#regionValue").text("Eropa")
-                d3.select("#regionText").html(
-                    `90.4% dari total pemesanan<br>` +
-                    `<span style="font-size: 12px; color: #666">${regionData[0].count.toLocaleString()} pemesanan</span>`
-                );
-            });
-
-        // Initialize with default values
-        updateInsights(countryData[0]);
     </script>
-    <a href="index.html" class="back-button">
-        <span>←</span> Kembali ke Menu
+    <a href="index.html" class="page-back-button">
+        <i class="fas fa-arrow-left"></i>
+        <span>Kembali ke Home</span>
     </a>
 </body>
 </html>

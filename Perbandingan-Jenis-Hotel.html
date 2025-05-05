@@ -36,7 +36,7 @@
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 15px;
-      margin-bottom: 8px; /* Further reduced bottom margin */
+      margin-bottom: 8px;
     }
 
     .stat-card {
@@ -77,7 +77,7 @@
       display: flex;
       justify-content: space-between;
       gap: 20px;
-      margin: 20px 0 0; /* Removed bottom margin */
+      margin: 20px 0 0;
       background: white;
       padding: 25px;
       border-radius: 15px;
@@ -130,11 +130,11 @@
       text-align: center;
       font-size: 14px;
       color: #34495e;
-      line-height: 1.4; /* Slightly reduced line height */
+      line-height: 1.4;
       padding: 12px;
       background: white;
       border-radius: 10px;
-      margin-top: 3px; /* Further reduced top margin */
+      margin-top: 3px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.05);
     }
 
@@ -142,34 +142,34 @@
       text-align: center;
       font-size: 11px;
       color: #95a5a6;
-      margin-top: 10px; /* Further reduced top margin */
+      margin-top: 10px;
     }
 
     .stats-insights-container {
       background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
       border-radius: 15px;
       padding: 20px;
-      margin-top: -10px; /* Negative margin to pull it up */
+      margin-top: -10px;
       box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-      position: relative; /* Added for better positioning */
-      z-index: 1; /* Ensure it's above the chart container */
+      position: relative;
+      z-index: 1;
     }
 
-    /* Add transition for smooth spacing changes */
     .container > * {
       transition: all 0.3s ease;
     }
 
-    /* Remove these since we're using a different approach */
     .container > .stats-insights-container {
       margin-top: -165px;
-      transform: none; /* Remove transform */
+      transform: none;
     }
 
     .axis-label {
       fill: #2c3e50;
       font-weight: 500;
     }
+
+
   </style>
 </head>
 <body>
@@ -191,39 +191,33 @@
       <div class="stats-grid">
         <div class="stat-card">
           <div class="stat-icon">🏢</div>
-          <div class="stat-value">70.0%</div>
+          <div class="stat-value" id="city-percentage">Loading...</div>
           <div class="stat-label">City Hotel</div>
         </div>
         <div class="stat-card">
           <div class="stat-icon">🏖️</div>
-          <div class="stat-value">30.0%</div>
+          <div class="stat-value" id="resort-percentage">Loading...</div>
           <div class="stat-label">Resort Hotel</div>
         </div>
         <div class="stat-card">
           <div class="stat-icon">📊</div>
-          <div class="stat-value">2.3:1</div>
+          <div class="stat-value" id="ratio-value">Loading...</div>
           <div class="stat-label">Rasio Perbandingan</div>
         </div>
       </div>
 
-      <div class="insight-text">
-        City Hotel mendominasi dengan <strong>70.0%</strong> dari total pemesanan, 
-        sementara Resort Hotel menyumbang <strong>30.0%</strong>. 
-        Rasio perbandingan <strong>2.3:1</strong> menunjukkan preferensi yang jelas 
-        terhadap City Hotel, kemungkinan karena lokasi yang lebih strategis.
+      <div class="insight-text" id="insight-text">
+        Loading data hotel...
       </div>
     </div>
 
     <div class="watermark">© Data Hotel 2025</div>
+    <a href="index.html" class="back-button">
+      <span>←</span> Kembali ke Menu
+    </a>
   </div>
 
   <script>
-    // Data pemesanan hotel
-    const data = [
-      { hotel: "City Hotel", count: 700 },
-      { hotel: "Resort Hotel", count: 300 }
-    ];
-
     // Warna untuk masing-masing jenis hotel
     const colors = {
       "City Hotel": "#1f77b4",   // Biru
@@ -249,165 +243,225 @@
     const barGroup = svgBar.append("g")
       .attr("transform", `translate(50, 50)`);
 
-    // Pie chart
-    const radius = 100;
-    const pie = d3.pie()
-      .value(d => d.count)
-      .sort(null);
+    // Load data from CSV file
+    d3.csv("data/hotel_bookings_processed.csv").then(function(rawData) {
+      // Process the data - count bookings by hotel type
+      const data = d3.rollup(
+        rawData,
+        v => v.length,
+        d => d.hotel
+      );
+      
+      // Convert to array of objects
+      const processedData = Array.from(data, ([hotel, count]) => ({ hotel, count }));
+      
+      // Update the visualization with the loaded data
+      updateVisualization(processedData);
+    }).catch(function(error) {
+      console.error("Error loading the CSV file:", error);
+      // Fallback to default data if CSV loading fails
+      const fallbackData = [
+        { hotel: "City Hotel", count: 700 },
+        { hotel: "Resort Hotel", count: 300 }
+      ];
+      updateVisualization(fallbackData);
+    });
 
-    const arc = d3.arc()
-      .innerRadius(0)
-      .outerRadius(radius);
+    function updateVisualization(data) {
+      const total = d3.sum(data, d => d.count);
+      
+      // Update stats cards
+      const cityData = data.find(d => d.hotel === "City Hotel") || { count: 0 };
+      const resortData = data.find(d => d.hotel === "Resort Hotel") || { count: 0 };
+      
+      const cityPercentage = ((cityData.count / total) * 100).toFixed(1);
+      const resortPercentage = ((resortData.count / total) * 100).toFixed(1);
+      const ratio = (cityData.count / resortData.count).toFixed(1);
+      
+      d3.select("#city-percentage").text(`${cityPercentage}%`);
+      d3.select("#resort-percentage").text(`${resortPercentage}%`);
+      d3.select("#ratio-value").text(`${ratio}:1`);
+      
+      // Update insight text
+      d3.select("#insight-text").html(`
+        City Hotel mendominasi dengan <strong>${cityPercentage}%</strong> dari total pemesanan, 
+        sementara Resort Hotel menyumbang <strong>${resortPercentage}%</strong>. 
+        Rasio perbandingan <strong>${ratio}:1</strong> menunjukkan preferensi yang jelas 
+        terhadap City Hotel, kemungkinan karena lokasi yang lebih strategis.
+      `);
 
-    const arcs = pieGroup.selectAll("arc")
-      .data(pie(data))
-      .enter()
-      .append("g");
+      // Pie chart
+      const radius = 100;
+      const pie = d3.pie()
+        .value(d => d.count)
+        .sort(null);
 
-    arcs.append("path")
-      .attr("d", arc)
-      .attr("class", "arc")
-      .attr("fill", d => colors[d.data.hotel])
-      .attr("stroke", "white")
-      .attr("stroke-width", 2)
-      .on("mouseover", function(event, d) {
-        d3.select(this)
-          .transition()
-          .duration(200)
-          .attr("transform", function(d) {
-            const centroid = arc.centroid(d);
-            return `translate(${centroid[0] * 0.05},${centroid[1] * 0.05})`;
-          });
+      const arc = d3.arc()
+        .innerRadius(0)
+        .outerRadius(radius);
 
-        tooltip.transition()
-          .duration(200)
-          .style("opacity", 1);
-        
-        tooltip.html(`
-          <strong>${d.data.hotel}</strong><br>
-          Jumlah: ${d.data.count}<br>
-          Persentase: ${((d.data.count / d3.sum(data, d => d.count)) * 100).toFixed(1)}%
-        `)
-        .style("left", (event.pageX + 10) + "px")
-        .style("top", (event.pageY - 10) + "px");
-      })
-      .on("mouseout", function() {
-        d3.select(this)
-          .transition()
-          .duration(200)
-          .attr("transform", "translate(0,0)");
+      // Remove existing pie chart elements
+      pieGroup.selectAll("*").remove();
+      
+      const arcs = pieGroup.selectAll("arc")
+        .data(pie(data))
+        .enter()
+        .append("g");
 
-        tooltip.transition()
-          .duration(500)
-          .style("opacity", 0);
-      });
+      arcs.append("path")
+        .attr("d", arc)
+        .attr("class", "arc")
+        .attr("fill", d => colors[d.data.hotel])
+        .attr("stroke", "white")
+        .attr("stroke-width", 2)
+        .on("mouseover", function(event, d) {
+          d3.select(this)
+            .transition()
+            .duration(200)
+            .attr("transform", function(d) {
+              const centroid = arc.centroid(d);
+              return `translate(${centroid[0] * 0.05},${centroid[1] * 0.05})`;
+            });
 
-    // Label pada pie chart
-    arcs.append("text")
-      .attr("transform", d => `translate(${arc.centroid(d)})`)
-      .attr("class", "label")
-      .text(d => `${d.data.hotel} (${((d.data.count / d3.sum(data, d => d.count)) * 100).toFixed(1)}%)`);
+          tooltip.transition()
+            .duration(200)
+            .style("opacity", 1);
+          
+          tooltip.html(`
+            <strong>${d.data.hotel}</strong><br>
+            Jumlah: ${d.data.count}<br>
+            Persentase: ${((d.data.count / total) * 100).toFixed(1)}%
+          `)
+          .style("left", (event.pageX + 10) + "px")
+          .style("top", (event.pageY - 10) + "px");
+        })
+        .on("mouseout", function() {
+          d3.select(this)
+            .transition()
+            .duration(200)
+            .attr("transform", "translate(0,0)");
 
-    // Bar chart
-    const xScale = d3.scaleBand()
-      .domain(data.map(d => d.hotel))
-      .range([0, 300])
-      .padding(0.4);
+          tooltip.transition()
+            .duration(500)
+            .style("opacity", 0);
+        });
 
-    const yScale = d3.scaleLinear()
-      .domain([0, d3.max(data, d => d.count)])
-      .range([200, 0]);
+      // Label pada pie chart
+      arcs.append("text")
+        .attr("transform", d => `translate(${arc.centroid(d)})`)
+        .attr("class", "label")
+        .attr("text-anchor", "middle")
+        .attr("dy", "0.35em")
+        .style("font-size", "12px")
+        .style("fill", "white")
+        .text(d => `${((d.data.count / total) * 100).toFixed(1)}%`);
 
-    const bars = barGroup.selectAll(".bar")
-      .data(data)
-      .enter()
-      .append("rect")
-      .attr("x", d => xScale(d.hotel))
-      .attr("y", d => yScale(d.count))
-      .attr("width", xScale.bandwidth())
-      .attr("height", d => 200 - yScale(d.count))
-      .attr("class", "bar")
-      .attr("fill", d => colors[d.hotel])
-      .on("mouseover", function(event, d) {
-        d3.select(this)
-          .transition()
-          .duration(200)
-          .attr("opacity", 0.8);
+      // Bar chart
+      // Remove existing bar chart elements
+      barGroup.selectAll("*").remove();
+      
+      const xScale = d3.scaleBand()
+        .domain(data.map(d => d.hotel))
+        .range([0, 300])
+        .padding(0.4);
 
-        tooltip.transition()
-          .duration(200)
-          .style("opacity", 1);
-        
-        tooltip.html(`
-          <strong>${d.hotel}</strong><br>
-          Jumlah: ${d.count}<br>
-          Persentase: ${((d.count / d3.sum(data, d => d.count)) * 100).toFixed(1)}%
-        `)
-        .style("left", (event.pageX + 10) + "px")
-        .style("top", (event.pageY - 10) + "px");
-      })
-      .on("mouseout", function() {
-        d3.select(this)
-          .transition()
-          .duration(200)
-          .attr("opacity", 1);
+      const yScale = d3.scaleLinear()
+        .domain([0, d3.max(data, d => d.count)])
+        .range([200, 0]);
 
-        tooltip.transition()
-          .duration(500)
-          .style("opacity", 0);
-      });
+      const bars = barGroup.selectAll(".bar")
+        .data(data)
+        .enter()
+        .append("rect")
+        .attr("x", d => xScale(d.hotel))
+        .attr("y", d => yScale(d.count))
+        .attr("width", xScale.bandwidth())
+        .attr("height", d => 200 - yScale(d.count))
+        .attr("class", "bar")
+        .attr("fill", d => colors[d.hotel])
+        .on("mouseover", function(event, d) {
+          d3.select(this)
+            .transition()
+            .duration(200)
+            .attr("opacity", 0.8);
 
-    // Label pada bar chart
-    barGroup.selectAll(".bar-label")
-      .data(data)
-      .enter()
-      .append("text")
-      .attr("x", d => xScale(d.hotel) + xScale.bandwidth() / 2)
-      .attr("y", d => yScale(d.count) + (200 - yScale(d.count)) / 2)
-      .attr("class", "bar-label")
-      .text(d => d.count);
+          tooltip.transition()
+            .duration(200)
+            .style("opacity", 1);
+          
+          tooltip.html(`
+            <strong>${d.hotel}</strong><br>
+            Jumlah: ${d.count}<br>
+            Persentase: ${((d.count / total) * 100).toFixed(1)}%
+          `)
+          .style("left", (event.pageX + 10) + "px")
+          .style("top", (event.pageY - 10) + "px");
+        })
+        .on("mouseout", function() {
+          d3.select(this)
+            .transition()
+            .duration(200)
+            .attr("opacity", 1);
 
-    // Sumbu X
-    barGroup.append("g")
-      .attr("transform", "translate(0,200)")
-      .call(d3.axisBottom(xScale));
+          tooltip.transition()
+            .duration(500)
+            .style("opacity", 0);
+        });
 
-    // Sumbu Y
-    barGroup.append("g")
-      .call(d3.axisLeft(yScale).ticks(5));
+      // Label pada bar chart
+      barGroup.selectAll(".bar-label")
+        .data(data)
+        .enter()
+        .append("text")
+        .attr("x", d => xScale(d.hotel) + xScale.bandwidth() / 2)
+        .attr("y", d => yScale(d.count) - 5)
+        .attr("class", "bar-label")
+        .attr("text-anchor", "middle")
+        .style("font-size", "12px")
+        .style("fill", "#2c3e50")
+        .text(d => d.count);
 
-    // Add X axis label
-    barGroup.append("text")
-      .attr("class", "axis-label")
-      .attr("x", 150) // Half of range width (300/2)
-      .attr("y", 240) // Below X axis
-      .attr("text-anchor", "middle")
-      .style("font-size", "12px")
-      .text("Jenis Hotel");
+      // Sumbu X
+      barGroup.append("g")
+        .attr("transform", "translate(0,200)")
+        .call(d3.axisBottom(xScale));
 
-    // Add Y axis label
-    barGroup.append("text")
-      .attr("class", "axis-label")
-      .attr("transform", "rotate(-90)")
-      .attr("x", -100) // Half of height
-      .attr("y", -40) // Left of Y axis
-      .attr("text-anchor", "middle")
-      .style("font-size", "12px")
-      .text("Jumlah Pemesanan");
+      // Sumbu Y
+      barGroup.append("g")
+        .call(d3.axisLeft(yScale).ticks(5));
 
-    // Rasio perbandingan
-    const ratio = (data[0].count / data[1].count).toFixed(1);
-    svgBar.append("text")
-      .attr("x", width / 2)
-      .attr("y", height - 20)
-      .attr("text-anchor", "middle")
-      .attr("font-size", "14px")
-      .attr("font-weight", "bold")
-      .text(`Rasio ${data[0].hotel} : ${data[1].hotel} = ${ratio} : 1`);
+      // Add X axis label
+      barGroup.append("text")
+        .attr("class", "axis-label")
+        .attr("x", 150)
+        .attr("y", 240)
+        .attr("text-anchor", "middle")
+        .style("font-size", "12px")
+        .text("Jenis Hotel");
+
+      // Add Y axis label
+      barGroup.append("text")
+        .attr("class", "axis-label")
+        .attr("transform", "rotate(-90)")
+        .attr("x", -100)
+        .attr("y", -40)
+        .attr("text-anchor", "middle")
+        .style("font-size", "12px")
+        .text("Jumlah Pemesanan");
+
+      // Rasio perbandingan
+      barGroup.append("text")
+        .attr("x", width / 2)
+        .attr("y", height - 20)
+        .attr("text-anchor", "middle")
+        .attr("font-size", "14px")
+        .attr("font-weight", "bold")
+        .text(`Rasio City Hotel : Resort Hotel = ${ratio} : 1`);
+    }
   </script>
-      <a href="index.html" class="back-button">
-        <span>←</span> Kembali ke Menu
-      </a>
-</body>
+  <a href="index.html" class="page-back-button">
+    <i class="fas fa-arrow-left"></i>
+    <span>Kembali ke Home</span>
+</a>
 </body>
 </html>

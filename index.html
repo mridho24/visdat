@@ -3,43 +3,235 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Visualisasi Data Hotel</title>
+    <title>Nocera - Visualisasi Data Hotel</title>
     <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <div class="container">
-        <h1>Visualisasi Data Hotel</h1>
-        <div class="nav-menu">
-            <a href="Pembatalan-Pemesanan.html" class="nav-item">
-                <div class="nav-icon">❌</div>
-                <div class="nav-title">Pembatalan Pemesanan</div>
-                <div class="nav-desc">Analisis pola pembatalan reservasi hotel dan faktor-faktor yang mempengaruhinya</div>
-            </a>
-            <a href="PemesananPerBulan.html" class="nav-item">
-                <div class="nav-icon">📅</div>
-                <div class="nav-title">Pemesanan Per Bulan</div>
-                <div class="nav-desc">Tren dan pola pemesanan hotel setiap bulan sepanjang tahun</div>
-            </a>
-            <a href="TipeKamar.html" class="nav-item">
-                <div class="nav-icon">🛏️</div>
-                <div class="nav-title">Tipe Kamar</div>
-                <div class="nav-desc">Distribusi pemesanan berdasarkan tipe kamar dan preferensi tamu</div>
-            </a>
-            <a href="Segmen-Pasar.html" class="nav-item">
-                <div class="nav-icon">🎯</div>
-                <div class="nav-title">Segmen Pasar</div>
-                <div class="nav-desc">Analisis segmentasi pasar hotel dan karakteristik pelanggan</div>
-            </a>
-            <a href="Negara-AsalTamu.html" class="nav-item">
-                <div class="nav-icon">🌍</div>
-                <div class="nav-title">Negara Asal Tamu</div>
-                <div class="nav-desc">Distribusi asal negara tamu dan analisis pasar internasional</div>
-            </a>
+    <header class="header">
+        <div class="logo-container">
+            <div class="logo">
+                <i class="fas fa-hotel"></i>
+                <span>Nocera</span>
+            </div>
+        </div>
+        <nav class="main-nav">
+            <ul>
+                <li><a href="#home" class="nav-link">Home</a></li>
+                <li><a href="#visual" class="nav-link">Visual</a></li>
+                <li><a href="#about" class="nav-link">About</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <section id="home" class="hero">
+        <div class="animated-bg"></div>
+        <div class="hero-content">
+            <h1>Visualisasi Data Hotel</h1>
+            <p>Analisis komprehensif untuk optimasi strategi dan pengalaman tamu hotel</p>
+            <a href="#visual" class="cta-button">Explore Data <i class="fas fa-arrow-right"></i></a>
+        </div>
+    </section>
+
+    <section id="about" class="about-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Tentang Aplikasi</h2>
+                <div class="underline"></div>
+            </div>
+            <div class="about-content">
+                <div class="about-text">
+                    <p>Aplikasi Hotel Booking ini hadir untuk mempermudah proses pemesanan hotel dengan menyediakan berbagai informasi terkait pemesanan, demografi pelanggan, durasi menginap, serta tren pembatalan yang dapat membantu pengelola hotel dalam meningkatkan pengalaman pelanggan dan pengambilan keputusan strategis.</p>
+                    <p>Berdasarkan dataset yang komprehensif mengenai data pemesanan hotel, aplikasi ini menawarkan analisis mendalam tentang berbagai faktor yang memengaruhi keputusan penginapan, mulai dari tren pemesanan, preferensi pelanggan, hingga pola pembatalan.</p>
+                </div>
+                <div class="about-stats">
+                    <div class="stat-item">
+                        <span class="stat-number">6</span>
+                        <span class="stat-label">Kategori Visual</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">100+</span>
+                        <span class="stat-label">Sumber Data</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">24/7</span>
+                        <span class="stat-label">Analisis Real-time</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="visual" class="dashboard-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Analisis Visual Data Hotel</h2>
+                <div class="underline"></div>
+            </div>
             
-            <a href="Perbandingan-Jenis-Hotel.html" class="nav-item">
-                <div class="nav-icon">🏠</div>
-                <div class="nav-title">Jenis Hotel</div>
-                <div class="nav-desc">Distribusi asal negara tamu dan analisis pasar internasional</div>
-            </a>
+            <div class="nav-menu">
+                <a href="Pembatalan-Pemesanan.html" class="nav-item" data-category="cancellations">
+                    <div class="card-content">
+                        <div class="nav-icon"><i class="fas fa-times-circle"></i></div>
+                        <div class="nav-title">Pembatalan Pemesanan</div>
+                        <div class="nav-desc">Analisis pola pembatalan reservasi hotel dan faktor-faktor yang mempengaruhinya</div>
+                    </div>
+                    <div class="card-hover">
+                        <span>Lihat Detail</span>
+                    </div>
+                </a>
+                
+                <a href="PemesananPerBulan.html" class="nav-item" data-category="monthly">
+                    <div class="card-content">
+                        <div class="nav-icon"><i class="fas fa-calendar-alt"></i></div>
+                        <div class="nav-title">Pemesanan Per Bulan</div>
+                        <div class="nav-desc">Tren dan pola pemesanan hotel setiap bulan sepanjang tahun</div>
+                    </div>
+                    <div class="card-hover">
+                        <span>Lihat Detail</span>
+                    </div>
+                </a>
+                
+                <a href="TipeKamar.html" class="nav-item" data-category="rooms">
+                    <div class="card-content">
+                        <div class="nav-icon"><i class="fas fa-bed"></i></div>
+                        <div class="nav-title">Tipe Kamar</div>
+                        <div class="nav-desc">Distribusi pemesanan berdasarkan tipe kamar dan preferensi tamu</div>
+                    </div>
+                    <div class="card-hover">
+                        <span>Lihat Detail</span>
+                    </div>
+                </a>
+                
+                <a href="Segmen-Pasar.html" class="nav-item" data-category="segments">
+                    <div class="card-content">
+                        <div class="nav-icon"><i class="fas fa-chart-pie"></i></div>
+                        <div class="nav-title">Segmen Pasar</div>
+                        <div class="nav-desc">Analisis segmentasi pasar hotel dan karakteristik pelanggan</div>
+                    </div>
+                    <div class="card-hover">
+                        <span>Lihat Detail</span>
+                    </div>
+                </a>
+                
+                <a href="Negara-AsalTamu.html" class="nav-item" data-category="countries">
+                    <div class="card-content">
+                        <div class="nav-icon"><i class="fas fa-globe-americas"></i></div>
+                        <div class="nav-title">Negara Asal Tamu</div>
+                        <div class="nav-desc">Distribusi asal negara tamu dan analisis pasar internasional</div>
+                    </div>
+                    <div class="card-hover">
+                        <span>Lihat Detail</span>
+                    </div>
+                </a>
+                
+                <a href="Perbandingan-Jenis-Hotel.html" class="nav-item" data-category="hotels">
+                    <div class="card-content">
+                        <div class="nav-icon"><i class="fas fa-building"></i></div>
+                        <div class="nav-title">Jenis Hotel</div>
+                        <div class="nav-desc">Perbandingan data dan performa antar jenis hotel</div>
+                    </div>
+                    <div class="card-hover">
+                        <span>Lihat Detail</span>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <i class="fas fa-hotel"></i>
+                    <span>Nocera</span>
+                </div>
+                <div class="footer-links">
+                    <ul>
+                        <li><a href="#home">Home</a></li>
+                        <li><a href="#visual">Visual</a></li>
+                        <li><a href="#about">About</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Nocera Hotel Analytics. All Rights Reserved.</p>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Back Button -->
+    <a href="#home" class="back-button">
+        <i class="fas fa-arrow-up"></i>
+        <span>Back to Top</span>
+    </a>
+
+    <script>
+        // Smooth scrolling for navigation
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        // Add active class to current nav item
+        const navLinks = document.querySelectorAll('.nav-link');
+        const backButton = document.querySelector('.back-button');
+        
+        window.addEventListener('scroll', () => {
+            let current = '';
+            const sections = document.querySelectorAll('section');
+            
+            // Show/hide back button based on scroll position
+            if (window.pageYOffset > 300) {
+                backButton.classList.add('visible');
+            } else {
+                backButton.classList.remove('visible');
+            }
+            
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                const sectionHeight = section.clientHeight;
+                if (pageYOffset >= (sectionTop - sectionHeight / 3)) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href').substring(1) === current) {
+                    link.classList.add('active');
+                }
+            });
+        });
+        
+        // Animation for cards
+        const cards = document.querySelectorAll('.nav-item');
+        
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+        
+        const observer = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = 1;
+                    entry.target.style.transform = 'translateY(0)';
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+        
+        cards.forEach((card, index) => {
+            card.style.opacity = 0;
+            card.style.transform = 'translateY(30px)';
+            card.style.transition = `all 0.5s ease ${index * 0.1}s`;
+            observer.observe(card);
+        });
+    </script>
 </body>
 </html>

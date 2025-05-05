@@ -51,11 +51,6 @@
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            transition: transform 0.3s ease;
-        }
-
-        .chart:hover {
-            transform: translateY(-5px);
         }
 
         .insights-grid {
@@ -140,10 +135,10 @@
             border-radius: 5px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
             pointer-events: none;
-            font-size: 14px;
             opacity: 0;
             transition: opacity 0.3s;
         }
+
     </style>
 </head>
 <body>
@@ -160,88 +155,133 @@
         </div>
 
         <div class="insights-grid">
-            <div class="insight-card">
+            <div class="insight-card" id="dominantRoomCard">
                 <div class="insight-header">
                     <span class="insight-icon">🏨</span>
                     <h4 class="insight-title">Tipe Kamar Dominan</h4>
                 </div>
-                <div class="insight-value">Tipe A</div>
-                <p class="insight-description">
-                    79.1% dari total pemesanan, menunjukkan preferensi yang kuat
-                </p>
-                <div class="trend-indicator trend-up">↑ Most Popular</div>
+                <div class="insight-value" id="dominantRoomType">Loading...</div>
+                <p class="insight-description" id="dominantRoomDesc">Loading...</p>
+                <div class="trend-indicator trend-up" id="dominantRoomTrend">↑ Most Popular</div>
             </div>
 
-            <div class="insight-card">
+            <div class="insight-card" id="matchRateCard">
                 <div class="insight-header">
                     <span class="insight-icon">✨</span>
                     <h4 class="insight-title">Kesesuaian Kamar</h4>
                 </div>
-                <div class="insight-value">96.8%</div>
-                <p class="insight-description">
-                    Tamu mendapatkan tipe kamar sesuai pesanan
-                </p>
-                <div class="trend-indicator trend-up">↑ High Match Rate</div>
+                <div class="insight-value" id="matchRate">Loading...</div>
+                <p class="insight-description">Persentase tamu yang mendapatkan tipe kamar sesuai pesanan</p>
+                <div class="trend-indicator trend-up" id="matchRateTrend">↑ High Match Rate</div>
             </div>
 
-            <div class="insight-card">
+            <div class="insight-card" id="upgradeRatioCard">
                 <div class="insight-header">
                     <span class="insight-icon">⬆️</span>
                     <h4 class="insight-title">Rasio Upgrade</h4>
                 </div>
-                <div class="insight-value">62.5%</div>
-                <p class="insight-description">
-                    Dari total perubahan tipe kamar, mayoritas adalah upgrade
-                </p>
-                <div class="trend-indicator trend-up">↑ Customer Satisfaction</div>
+                <div class="insight-value" id="upgradeRatio">Loading...</div>
+                <p class="insight-description">Persentase perubahan tipe kamar yang merupakan upgrade</p>
+                <div class="trend-indicator trend-up" id="upgradeRatioTrend">↑ Customer Satisfaction</div>
             </div>
 
-            <div class="insight-card">
+            <div class="insight-card" id="distributionCard">
                 <div class="insight-header">
                     <span class="insight-icon">📊</span>
                     <h4 class="insight-title">Distribusi Kamar</h4>
                 </div>
-                <div class="insight-value">6.4 : 1</div>
-                <p class="insight-description">
-                    Rasio pemesanan Tipe A dibanding Tipe D
-                </p>
-                <div class="trend-indicator trend-up">↑ Clear Preference</div>
+                <div class="insight-value" id="roomRatio">Loading...</div>
+                <p class="insight-description" id="roomRatioDesc">Loading...</p>
+                <div class="trend-indicator trend-up" id="roomRatioTrend">↑ Clear Preference</div>
             </div>
         </div>
     </div>
 
     <script>
-        // Data preparation
-        const roomTypeData = [
-            { type: 'A', count: 7910, percentage: 79.1 },
-            { type: 'D', count: 1230, percentage: 12.3 },
-            { type: 'E', count: 320, percentage: 3.2 },
-            { type: 'F', count: 210, percentage: 2.1 },
-            { type: 'G', count: 180, percentage: 1.8 },
-            { type: 'H', count: 150, percentage: 1.5 }
-        ];
+        // Load data from CSV
+        d3.csv("data/hotel_bookings_processed.csv").then(function(rawData) {
+            // Process room type distribution
+            const roomTypeCounts = d3.rollup(
+                rawData,
+                v => v.length,
+                d => d.reserved_room_type
+            );
 
-        const roomMatchData = [
-            { status: 'Sesuai', count: 9680, percentage: 96.8 },
-            { status: 'Tidak Sesuai', count: 320, percentage: 3.2 }
-        ];
+            const totalBookings = rawData.length;
+            const roomTypeData = Array.from(roomTypeCounts, ([type, count]) => ({
+                type: type,
+                count: count,
+                percentage: ((count / totalBookings) * 100).toFixed(1)
+            })).sort((a, b) => b.count - a.count);
 
-        const upgradeDowngradeData = [
-            { type: 'Upgrade', count: 200, percentage: 62.5 },
-            { type: 'Downgrade', count: 120, percentage: 37.5 }
-        ];
+            // Process room match data
+            const matchCount = rawData.filter(d => 
+                d.reserved_room_type === d.assigned_room_type
+            ).length;
+
+            const roomMatchData = [
+                { 
+                    status: 'Sesuai', 
+                    count: matchCount, 
+                    percentage: ((matchCount / totalBookings) * 100).toFixed(1) 
+                },
+                { 
+                    status: 'Tidak Sesuai', 
+                    count: totalBookings - matchCount, 
+                    percentage: (((totalBookings - matchCount) / totalBookings) * 100).toFixed(1) 
+                }
+            ];
+
+            // Process upgrade/downgrade data
+            const mismatchedBookings = rawData.filter(d => 
+                d.reserved_room_type !== d.assigned_room_type
+            );
+
+            const upgradeCount = mismatchedBookings.filter(d => 
+                d.assigned_room_type.charCodeAt(0) < d.reserved_room_type.charCodeAt(0)
+            ).length;
+
+            const downgradeCount = mismatchedBookings.filter(d => 
+                d.assigned_room_type.charCodeAt(0) > d.reserved_room_type.charCodeAt(0)
+            ).length;
+
+            const totalChanges = upgradeCount + downgradeCount;
+            const upgradeDowngradeData = [
+                { 
+                    type: 'Upgrade', 
+                    count: upgradeCount, 
+                    percentage: ((upgradeCount / totalChanges) * 100).toFixed(1) 
+                },
+                { 
+                    type: 'Downgrade', 
+                    count: downgradeCount, 
+                    percentage: ((downgradeCount / totalChanges) * 100).toFixed(1) 
+                }
+            ];
+
+            // Create visualizations
+            createRoomTypeChart(roomTypeData);
+            createRoomMatchChart(roomMatchData);
+            createUpgradeChart(upgradeDowngradeData);
+
+            // Add this line to update insights with real data
+            updateInsights(roomTypeData, roomMatchData, upgradeDowngradeData);
+
+        }).catch(function(error) {
+            console.error("Error loading CSV:", error);
+        });
 
         // Set up dimensions and margins
         const margin = { top: 40, right: 30, bottom: 80, left: 100 };
         const barChartWidth = 900 - margin.left - margin.right;
         const barChartHeight = 400 - margin.top - margin.bottom;
-        const pieChartWidth = 350;  // Increased from 300
-        const pieChartHeight = 350; // Increased from 300
-        const pieRadius = Math.min(pieChartWidth, pieChartHeight) / 2 - 40; // Added more padding
+        const pieChartWidth = 350;
+        const pieChartHeight = 350;
+        const pieRadius = Math.min(pieChartWidth, pieChartHeight) / 2 - 40;
 
         // Color scales
         const colorScale = d3.scaleSequential(d3.interpolateViridis)
-            .domain([0, roomTypeData.length - 1]);
+            .domain([0, 10]);
 
         const matchColor = d3.scaleOrdinal()
             .domain(['Sesuai', 'Tidak Sesuai'])
@@ -256,220 +296,263 @@
             .attr("class", "tooltip")
             .style("opacity", 0);
 
-        // 1. Room Type Bar Chart
-        const barSvg = d3.select("#roomTypeChart")
-            .append("svg")
-            .attr("width", barChartWidth + margin.left + margin.right)
-            .attr("height", barChartHeight + margin.top + margin.bottom)
-            .append("g")
-            .attr("transform", `translate(${margin.left},${margin.top})`);
+        // Room Type Bar Chart
+        function createRoomTypeChart(roomTypeData) {
+            const barSvg = d3.select("#roomTypeChart")
+                .append("svg")
+                .attr("width", barChartWidth + margin.left + margin.right)
+                .attr("height", barChartHeight + margin.top + margin.bottom)
+                .append("g")
+                .attr("transform", `translate(${margin.left},${margin.top})`);
 
-        // X scale
-        const x = d3.scaleLinear()
-            .domain([0, d3.max(roomTypeData, d => d.count)])
-            .range([0, barChartWidth]);
+            const x = d3.scaleLinear()
+                .domain([0, d3.max(roomTypeData, d => d.count)])
+                .range([0, barChartWidth]);
 
-        // Y scale
-        const y = d3.scaleBand()
-            .domain(roomTypeData.map(d => d.type))
-            .range([0, barChartHeight])
-            .padding(0.2);
+            const y = d3.scaleBand()
+                .domain(roomTypeData.map(d => d.type))
+                .range([0, barChartHeight])
+                .padding(0.2);
 
-        // Add bars
-        barSvg.selectAll(".bar")
-            .data(roomTypeData)
-            .enter()
-            .append("rect")
-            .attr("class", "bar")
-            .attr("x", 0)
-            .attr("y", d => y(d.type))
-            .attr("width", d => x(d.count))
-            .attr("height", y.bandwidth())
-            .attr("fill", (d, i) => colorScale(i))
-            .on("mouseover", function(event, d) {
-                tooltip.transition()
-                    .duration(200)
-                    .style("opacity", .9);
-                tooltip.html(`Tipe Kamar ${d.type}<br>Jumlah: ${d.count.toLocaleString()}<br>Persentase: ${d.percentage}%`)
-                    .style("left", (event.pageX + 10) + "px")
-                    .style("top", (event.pageY - 28) + "px");
-            })
-            .on("mouseout", function() {
-                tooltip.transition()
-                    .duration(500)
-                    .style("opacity", 0);
-            });
+            barSvg.selectAll(".bar")
+                .data(roomTypeData)
+                .enter()
+                .append("rect")
+                .attr("class", "bar")
+                .attr("x", 0)
+                .attr("y", d => y(d.type))
+                .attr("width", d => x(d.count))
+                .attr("height", y.bandwidth())
+                .attr("fill", (d, i) => colorScale(i))
+                .on("mouseover", function(event, d) {
+                    d3.select(this).attr("opacity", 0.8);
+                    tooltip.transition()
+                        .duration(200)
+                        .style("opacity", .9);
+                    tooltip.html(`Tipe Kamar ${d.type}<br>Jumlah: ${d.count.toLocaleString()}<br>Persentase: ${d.percentage}%`)
+                        .style("left", (event.pageX + 10) + "px")
+                        .style("top", (event.pageY - 28) + "px");
+                })
+                .on("mouseout", function() {
+                    d3.select(this).attr("opacity", 1);
+                    tooltip.transition()
+                        .duration(500)
+                        .style("opacity", 0);
+                });
 
-        // Add value labels
-        barSvg.selectAll(".label")
-            .data(roomTypeData)
-            .enter()
-            .append("text")
-            .attr("class", "label")
-            .attr("x", d => x(d.count) + 5)
-            .attr("y", d => y(d.type) + y.bandwidth() / 2)
-            .attr("dy", ".35em")
-            .text(d => `${d.count.toLocaleString()} (${d.percentage}%)`)
-            .style("font-size", "12px")
-            .style("fill", "#555");
+            barSvg.selectAll(".label")
+                .data(roomTypeData)
+                .enter()
+                .append("text")
+                .attr("class", "label")
+                .attr("x", d => x(d.count) + 5)
+                .attr("y", d => y(d.type) + y.bandwidth() / 2)
+                .attr("dy", ".35em")
+                .text(d => `${d.count.toLocaleString()} (${d.percentage}%)`)
+                .style("font-size", "12px")
+                .style("fill", "#555");
 
-        // Add axes
-        barSvg.append("g")
-            .attr("class", "x axis")
-            .attr("transform", `translate(0,${barChartHeight})`)
-            .call(d3.axisBottom(x).ticks(5).tickFormat(d => d.toLocaleString()))
-            .selectAll("text")
-            .style("text-anchor", "end")
-            .attr("dx", "-.8em")
-            .attr("dy", ".15em")
-            .attr("transform", "rotate(-45)");
+            barSvg.append("g")
+                .attr("class", "x axis")
+                .attr("transform", `translate(0,${barChartHeight})`)
+                .call(d3.axisBottom(x).ticks(5).tickFormat(d => d.toLocaleString()))
+                .selectAll("text")
+                .style("text-anchor", "end")
+                .attr("dx", "-.8em")
+                .attr("dy", ".15em")
+                .attr("transform", "rotate(-45)");
 
-        barSvg.append("g")
-            .attr("class", "y axis")
-            .call(d3.axisLeft(y));
+            barSvg.append("g")
+                .attr("class", "y axis")
+                .call(d3.axisLeft(y));
 
-        // Add X axis label
-        barSvg.append("text")
-            .attr("x", barChartWidth / 2)
-            .attr("y", barChartHeight + margin.bottom - 10)
-            .attr("text-anchor", "middle")
-            .style("font-size", "14px")
-            .text("Jumlah Pemesanan");
+            barSvg.append("text")
+                .attr("x", barChartWidth / 2)
+                .attr("y", barChartHeight + margin.bottom - 10)
+                .attr("text-anchor", "middle")
+                .style("font-size", "14px")
+                .text("Jumlah Pemesanan");
 
-        // Add Y axis label
-        barSvg.append("text")
-            .attr("transform", "rotate(-90)")
-            .attr("x", -barChartHeight / 2)
-            .attr("y", -margin.left + 20)
-            .attr("text-anchor", "middle")
-            .style("font-size", "14px")
-            .text("Tipe Kamar");
+            barSvg.append("text")
+                .attr("transform", "rotate(-90)")
+                .attr("x", -barChartHeight / 2)
+                .attr("y", -margin.left + 20)
+                .attr("text-anchor", "middle")
+                .style("font-size", "14px")
+                .text("Tipe Kamar");
 
-        // Add chart title
-        barSvg.append("text")
-            .attr("x", barChartWidth / 2)
-            .attr("y", -10)
-            .attr("text-anchor", "middle")
-            .style("font-size", "16px")
-            .style("font-weight", "bold")
-            .text("Distribusi Tipe Kamar yang Dipesan");
+            barSvg.append("text")
+                .attr("x", barChartWidth / 2)
+                .attr("y", -10)
+                .attr("text-anchor", "middle")
+                .style("font-size", "16px")
+                .style("font-weight", "bold")
+                .text("Distribusi Tipe Kamar yang Dipesan");
+        }
 
-        // 2. Room Match Pie Chart
-        const pieSvg1 = d3.select("#roomMatchChart")
-            .append("svg")
-            .attr("width", pieChartWidth)
-            .attr("height", pieChartHeight)
-            .append("g")
-            .attr("transform", `translate(${pieChartWidth / 2},${pieChartHeight / 2})`);
+        // Room Match Pie Chart
+        function createRoomMatchChart(roomMatchData) {
+            const pieSvg1 = d3.select("#roomMatchChart")
+                .append("svg")
+                .attr("width", pieChartWidth)
+                .attr("height", pieChartHeight)
+                .append("g")
+                .attr("transform", `translate(${pieChartWidth / 2},${pieChartHeight / 2})`);
 
-        const pie = d3.pie()
-            .value(d => d.count)
-            .sort(null);
+            const pie = d3.pie()
+                .value(d => d.count)
+                .sort(null);
 
-        const arc = d3.arc()
-            .innerRadius(0)
-            .outerRadius(pieRadius);
+            const arc = d3.arc()
+                .innerRadius(0)
+                .outerRadius(pieRadius);
 
-        const arcs1 = pieSvg1.selectAll(".arc")
-            .data(pie(roomMatchData))
-            .enter()
-            .append("g")
-            .attr("class", "arc");
+            const arcs1 = pieSvg1.selectAll(".arc")
+                .data(pie(roomMatchData))
+                .enter()
+                .append("g")
+                .attr("class", "arc");
 
-        arcs1.append("path")
-            .attr("d", arc)
-            .attr("fill", d => matchColor(d.data.status))
-            .attr("stroke", "white")
-            .attr("stroke-width", 1)
-            .on("mouseover", function(event, d) {
-                d3.select(this).attr("stroke-width", 2);
-                tooltip.transition()
-                    .duration(200)
-                    .style("opacity", .9);
-                tooltip.html(`${d.data.status}<br>Jumlah: ${d.data.count.toLocaleString()}<br>Persentase: ${d.data.percentage}%`)
-                    .style("left", (event.pageX + 10) + "px")
-                    .style("top", (event.pageY - 28) + "px");
-            })
-            .on("mouseout", function() {
-                d3.select(this).attr("stroke-width", 1);
-                tooltip.transition()
-                    .duration(500)
-                    .style("opacity", 0);
-            });
+            arcs1.append("path")
+                .attr("d", arc)
+                .attr("fill", d => matchColor(d.data.status))
+                .attr("stroke", "white")
+                .attr("stroke-width", 2)
+                .attr("explode", (d, i) => i === 1 ? 0.1 : 0) // Explode 'Tidak Sesuai'
+                .on("mouseover", function(event, d) {
+                    d3.select(this).attr("stroke-width", 4);
+                    tooltip.transition()
+                        .duration(200)
+                        .style("opacity", .9);
+                    tooltip.html(`${d.data.status}<br>Jumlah: ${d.data.count.toLocaleString()}<br>Persentase: ${d.data.percentage}%`)
+                        .style("left", (event.pageX + 10) + "px")
+                        .style("top", (event.pageY - 28) + "px");
+                })
+                .on("mouseout", function() {
+                    d3.select(this).attr("stroke-width", 2);
+                    tooltip.transition()
+                        .duration(500)
+                        .style("opacity", 0);
+                });
 
-        // Add labels to pie chart
-        arcs1.append("text")
-            .attr("transform", d => `translate(${arc.centroid(d)})`)
-            .attr("dy", "0.35em")
-            .attr("text-anchor", "middle")
-            .text(d => `${d.data.status} (${d.data.percentage}%)`)
-            .style("font-size", "12px")
-            .style("fill", "white");
+            arcs1.append("text")
+                .attr("transform", d => `translate(${arc.centroid(d)})`)
+                .attr("dy", "0.35em")
+                .attr("text-anchor", "middle")
+                .text(d => `${d.data.status} (${d.percentage}%)`)
+                .style("font-size", "12px")
+                .style("fill", "white");
 
-        // Add pie chart title
-        pieSvg1.append("text")
-            .attr("x", 0)
-            .attr("y", -pieChartHeight / 2 + 20)
-            .attr("text-anchor", "middle")
-            .style("font-size", "14px")
-            .style("font-weight", "bold")
-            .text("Kecocokan Tipe Kamar");
+            pieSvg1.append("text")
+                .attr("x", 0)
+                .attr("y", -pieChartHeight / 2 + 20)
+                .attr("text-anchor", "middle")
+                .style("font-size", "14px")
+                .style("font-weight", "bold")
+                .text("Kecocokan Tipe Kamar");
+        }
 
-        // 3. Upgrade/Downgrade Pie Chart
-        const pieSvg2 = d3.select("#upgradeChart")
-            .append("svg")
-            .attr("width", pieChartWidth)
-            .attr("height", pieChartHeight)
-            .append("g")
-            .attr("transform", `translate(${pieChartWidth / 2},${pieChartHeight / 2})`);
+        // Upgrade/Downgrade Pie Chart
+        function createUpgradeChart(upgradeDowngradeData) {
+            const pieSvg2 = d3.select("#upgradeChart")
+                .append("svg")
+                .attr("width", pieChartWidth)
+                .attr("height", pieChartHeight)
+                .append("g")
+                .attr("transform", `translate(${pieChartWidth / 2},${pieChartHeight / 2})`);
 
-        const arcs2 = pieSvg2.selectAll(".arc")
-            .data(pie(upgradeDowngradeData))
-            .enter()
-            .append("g")
-            .attr("class", "arc");
+            const pie = d3.pie()
+                .value(d => d.count)
+                .sort(null);
 
-        arcs2.append("path")
-            .attr("d", arc)
-            .attr("fill", d => upgradeColor(d.data.type))
-            .attr("stroke", "white")
-            .attr("stroke-width", 1)
-            .on("mouseover", function(event, d) {
-                d3.select(this).attr("stroke-width", 2);
-                tooltip.transition()
-                    .duration(200)
-                    .style("opacity", .9);
-                tooltip.html(`${d.data.type}<br>Jumlah: ${d.data.count.toLocaleString()}<br>Persentase: ${d.data.percentage}%`)
-                    .style("left", (event.pageX + 10) + "px")
-                    .style("top", (event.pageY - 28) + "px");
-            })
-            .on("mouseout", function() {
-                d3.select(this).attr("stroke-width", 1);
-                tooltip.transition()
-                    .duration(500)
-                    .style("opacity", 0);
-            });
+            const arc = d3.arc()
+                .innerRadius(0)
+                .outerRadius(pieRadius);
 
-        // Add labels to pie chart
-        arcs2.append("text")
-            .attr("transform", d => `translate(${arc.centroid(d)})`)
-            .attr("dy", "0.35em")
-            .attr("text-anchor", "middle")
-            .text(d => `${d.data.type} (${d.data.percentage}%)`)
-            .style("font-size", "12px")
-            .style("fill", "white");
+            const arcs2 = pieSvg2.selectAll(".arc")
+                .data(pie(upgradeDowngradeData))
+                .enter()
+                .append("g")
+                .attr("class", "arc");
 
-        // Add pie chart title
-        pieSvg2.append("text")
-            .attr("x", 0)
-            .attr("y", -pieChartHeight / 2 + 20)
-            .attr("text-anchor", "middle")
-            .style("font-size", "14px")
-            .style("font-weight", "bold")
-            .text("Upgrade vs Downgrade");
+            arcs2.append("path")
+                .attr("d", arc)
+                .attr("fill", d => upgradeColor(d.data.type))
+                .attr("stroke", "white")
+                .attr("stroke-width", 2)
+                .on("mouseover", function(event, d) {
+                    d3.select(this).attr("stroke-width", 4);
+                    tooltip.transition()
+                        .duration(200)
+                        .style("opacity", .9);
+                    tooltip.html(`${d.data.type}<br>Jumlah: ${d.data.count.toLocaleString()}<br>Persentase: ${d.data.percentage}%`)
+                        .style("left", (event.pageX + 10) + "px")
+                        .style("top", (event.pageY - 28) + "px");
+                })
+                .on("mouseout", function() {
+                    d3.select(this).attr("stroke-width", 2);
+                    tooltip.transition()
+                        .duration(500)
+                        .style("opacity", 0);
+                });
+
+            arcs2.append("text")
+                .attr("transform", d => `translate(${arc.centroid(d)})`)
+                .attr("dy", "0.35em")
+                .attr("text-anchor", "middle")
+                .text(d => `${d.data.type} (${d.percentage}%)`)
+                .style("font-size", "12px")
+                .style("fill", "white");
+
+            pieSvg2.append("text")
+                .attr("x", 0)
+                .attr("y", -pieChartHeight / 2 + 20)
+                .attr("text-anchor", "middle")
+                .style("font-size", "14px")
+                .style("font-weight", "bold")
+                .text("Upgrade vs Downgrade");
+        }
+
+        // Update Insights
+        function updateInsights(roomTypeData, roomMatchData, upgradeDowngradeData) {
+            const totalBookings = d3.sum(roomTypeData, d => d.count);
+            const mismatchPercentage = parseFloat(roomMatchData.find(d => d.status === 'Tidak Sesuai').percentage);
+
+            // Dominant Room Type
+            const dominantRoom = roomTypeData[0];
+            d3.select("#dominantRoomType").text(`Tipe ${dominantRoom.type}`);
+            d3.select("#dominantRoomDesc").text(`${dominantRoom.percentage}% dari total pemesanan, menunjukkan preferensi yang kuat`);
+            d3.select("#dominantRoomTrend")
+                .text(dominantRoom.percentage > 50 ? "↑ Most Popular" : "↑ Top Choice")
+                .attr("class", `trend-indicator ${dominantRoom.percentage > 50 ? "trend-up" : "trend-down"}`);
+
+            // Room Match Rate
+            const matchRate = roomMatchData.find(d => d.status === 'Sesuai').percentage;
+            d3.select("#matchRate").text(`${matchRate}%`);
+            d3.select("#matchRateTrend")
+                .text(matchRate >= 95 ? "↑ High Match Rate" : "↓ Needs Improvement")
+                .attr("class", `trend-indicator ${matchRate >= 95 ? "trend-up" : "trend-down"}`);
+
+            // Upgrade Ratio
+            const upgradeRatio = parseFloat(upgradeDowngradeData.find(d => d.type === 'Upgrade').percentage);
+            d3.select("#upgradeRatio").text(`${upgradeRatio}%`);
+            d3.select("#upgradeRatioTrend")
+                .text(upgradeRatio >= 60 ? "↑ Customer Satisfaction" : "↓ Review Needed")
+                .attr("class", `trend-indicator ${upgradeRatio >= 60 ? "trend-up" : "trend-down"}`);
+
+            // Room Distribution Ratio
+            const secondRoom = roomTypeData[1] || { type: dominantRoom.type, count: 1 };
+            const ratio = (dominantRoom.count / secondRoom.count).toFixed(1);
+            d3.select("#roomRatio").text(`${ratio} : 1`);
+            d3.select("#roomRatioDesc").text(`Rasio pemesanan Tipe ${dominantRoom.type} dibandingkan Tipe ${secondRoom.type}`);
+            d3.select("#roomRatioTrend")
+                .text(ratio >= 5 ? "↑ Clear Preference" : "↑ Moderate Preference")
+                .attr("class", `trend-indicator ${ratio >= 5 ? "trend-up" : "trend-down"}`);
+        }
     </script>
-    <a href="index.html" class="back-button">
-        <span>←</span> Kembali ke Menu
+    <a href="index.html" class="page-back-button">
+        <i class="fas fa-arrow-left"></i>
+        <span>Kembali ke Home</span>
     </a>
 </body>
 </html>

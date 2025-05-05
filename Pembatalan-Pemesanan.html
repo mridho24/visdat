@@ -201,10 +201,8 @@
                     <span class="insight-icon">📊</span>
                     <h4 class="insight-title">Tingkat Pembatalan</h4>
                 </div>
-                <div class="insight-value" id="cancellationRate">37.0%</div>
-                <p class="insight-description">
-                    Dari total 100.000 pemesanan, sebanyak 37.000 pemesanan dibatalkan
-                </p>
+                <div class="insight-value" id="cancellationRate"></div>
+                <p class="insight-description" id="cancellationDescription"></p>
                 <div class="trend-indicator trend-down">↓ Perlu Perhatian</div>
             </div>
 
@@ -213,10 +211,8 @@
                     <span class="insight-icon">🏨</span>
                     <h4 class="insight-title">Pembatalan City Hotel</h4>
                 </div>
-                <div class="insight-value" id="cityRate">35.7%</div>
-                <p class="insight-description">
-                    City Hotel memiliki tingkat pembatalan lebih tinggi dibanding Resort Hotel
-                </p>
+                <div class="insight-value" id="cityRate"></div>
+                <p class="insight-description" id="cityDescription"></p>
                 <div class="trend-indicator trend-down">↓ Lebih Tinggi</div>
             </div>
 
@@ -225,10 +221,8 @@
                     <span class="insight-icon">⏱️</span>
                     <h4 class="insight-title">Faktor Lead Time</h4>
                 </div>
-                <div class="insight-value">91-180 hari</div>
-                <p class="insight-description">
-                    Pemesanan dengan lead time 91-180 hari memiliki tingkat pembatalan tertinggi
-                </p>
+                <div class="insight-value" id="leadTimeValue"></div>
+                <p class="insight-description" id="leadTimeDescription"></p>
                 <div class="trend-indicator trend-down">↓ Risiko Tinggi</div>
             </div>
 
@@ -237,174 +231,141 @@
                     <span class="insight-icon">💰</span>
                     <h4 class="insight-title">Faktor Deposit</h4>
                 </div>
-                <div class="insight-value">80.0%</div>
-                <p class="insight-description">
-                    Pemesanan 'Non Refund' memiliki tingkat pembatalan yang sangat tinggi
-                </p>
+                <div class="insight-value" id="depositValue"></div>
+                <p class="insight-description" id="depositDescription"></p>
                 <div class="trend-indicator trend-down">↓ Perlu Evaluasi</div>
             </div>
         </div>
     </div>
 
     <script>
-        // Sample data
-        const data = {
-            cancellation: {
-                total: 100000,
-                canceled: 37000,
-                notCanceled: 63000
-            },
-            byHotel: [
-                { hotel: "City Hotel", canceled: 25000, notCanceled: 45000 },
-                { hotel: "Resort Hotel", canceled: 12000, notCanceled: 18000 }
-            ],
-            byLeadTime: [
-                { leadTime: "0-30 hari", canceled: 5000, notCanceled: 15000 },
-                { leadTime: "31-60 hari", canceled: 8000, notCanceled: 12000 },
-                { leadTime: "61-90 hari", canceled: 10000, notCanceled: 10000 },
-                { leadTime: "91-180 hari", canceled: 12000, notCanceled: 8000 },
-                { leadTime: ">180 hari", canceled: 2000, notCanceled: 3000 }
-            ],
-            byDeposit: [
-                { depositType: "No Deposit", canceled: 15000, notCanceled: 40000 },
-                { depositType: "Non Refund", canceled: 20000, notCanceled: 5000 },
-                { depositType: "Refundable", canceled: 2000, notCanceled: 18000 }
-            ]
-        };
+        // Load data from CSV
+        d3.csv("data/hotel_bookings_processed.csv").then(function(csvData) {
+            // Process the data
+            const data = {
+                cancellation: {
+                    total: csvData.length,
+                    canceled: csvData.filter(d => d.is_canceled === "1").length,
+                    notCanceled: csvData.filter(d => d.is_canceled === "0").length
+                },
+                byHotel: [
+                    {
+                        hotel: "City Hotel",
+                        canceled: csvData.filter(d => d.hotel === "City Hotel" && d.is_canceled === "1").length,
+                        notCanceled: csvData.filter(d => d.hotel === "City Hotel" && d.is_canceled === "0").length
+                    },
+                    {
+                        hotel: "Resort Hotel",
+                        canceled: csvData.filter(d => d.hotel === "Resort Hotel" && d.is_canceled === "1").length,
+                        notCanceled: csvData.filter(d => d.hotel === "Resort Hotel" && d.is_canceled === "0").length
+                    }
+                ],
+                byLeadTime: [
+                    { 
+                        leadTime: "0-30 hari",
+                        canceled: csvData.filter(d => +d.lead_time <= 30 && d.is_canceled === "1").length,
+                        notCanceled: csvData.filter(d => +d.lead_time <= 30 && d.is_canceled === "0").length
+                    },
+                    {
+                        leadTime: "31-60 hari",
+                        canceled: csvData.filter(d => +d.lead_time > 30 && +d.lead_time <= 60 && d.is_canceled === "1").length,
+                        notCanceled: csvData.filter(d => +d.lead_time > 30 && +d.lead_time <= 60 && d.is_canceled === "0").length
+                    },
+                    {
+                        leadTime: "61-90 hari",
+                        canceled: csvData.filter(d => +d.lead_time > 60 && +d.lead_time <= 90 && d.is_canceled === "1").length,
+                        notCanceled: csvData.filter(d => +d.lead_time > 60 && +d.lead_time <= 90 && d.is_canceled === "0").length
+                    },
+                    {
+                        leadTime: "91-180 hari",
+                        canceled: csvData.filter(d => +d.lead_time > 90 && +d.lead_time <= 180 && d.is_canceled === "1").length,
+                        notCanceled: csvData.filter(d => +d.lead_time > 90 && +d.lead_time <= 180 && d.is_canceled === "0").length
+                    },
+                    {
+                        leadTime: ">180 hari",
+                        canceled: csvData.filter(d => +d.lead_time > 180 && d.is_canceled === "1").length,
+                        notCanceled: csvData.filter(d => +d.lead_time > 180 && d.is_canceled === "0").length
+                    }
+                ],
+                byDeposit: Array.from(d3.group(csvData, d => d.deposit_type), ([depositType, values]) => ({
+                    depositType: depositType,
+                    canceled: values.filter(d => d.is_canceled === "1").length,
+                    notCanceled: values.filter(d => d.is_canceled === "0").length
+                }))
+            };
 
-        // Calculate percentages
-        data.cancellation.canceledPct = (data.cancellation.canceled / data.cancellation.total * 100).toFixed(1);
-        data.cancellation.notCanceledPct = (data.cancellation.notCanceled / data.cancellation.total * 100).toFixed(1);
+            // Calculate percentages
+            data.cancellation.canceledPct = (data.cancellation.canceled / data.cancellation.total * 100).toFixed(1);
+            data.cancellation.notCanceledPct = (data.cancellation.notCanceled / data.cancellation.total * 100).toFixed(1);
 
-        data.byHotel.forEach(d => {
-            d.total = d.canceled + d.notCanceled;
-            d.canceledPct = (d.canceled / d.total * 100).toFixed(1);
-        });
-
-        data.byLeadTime.forEach(d => {
-            d.total = d.canceled + d.notCanceled;
-            d.canceledPct = (d.canceled / d.total * 100).toFixed(1);
-        });
-
-        data.byDeposit.forEach(d => {
-            d.total = d.canceled + d.notCanceled;
-            d.canceledPct = (d.canceled / d.total * 100).toFixed(1);
-        });
-
-        // Tooltip
-        const tooltip = d3.select("body").append("div")
-            .attr("class", "tooltip");
-
-        // 1. Pie Chart - Overall Cancellation
-        const pieSvg = d3.select("#overall-chart").append("svg")
-            .attr("width", 400)
-            .attr("height", 300);
-        const pieWidth = +pieSvg.attr("width");
-        const pieHeight = +pieSvg.attr("height");
-        const pieRadius = Math.min(pieWidth, pieHeight) / 2 - 30;
-        const pieG = pieSvg.append("g")
-            .attr("transform", `translate(${pieWidth/2},${pieHeight/2})`);
-
-        const pieColor = d3.scaleOrdinal()
-            .domain(["notCanceled", "canceled"])
-            .range(["#2ecc71", "#e74c3c"]);
-
-        const pie = d3.pie()
-            .value(d => d.value)
-            .sort(null);
-
-        const pieData = [
-            { label: "Tidak Dibatalkan", value: data.cancellation.notCanceled, pct: data.cancellation.notCanceledPct },
-            { label: "Dibatalkan", value: data.cancellation.canceled, pct: data.cancellation.canceledPct }
-        ];
-
-        const arc = d3.arc()
-            .innerRadius(0)
-            .outerRadius(pieRadius)
-            .padAngle(0.02)
-            .padRadius(pieRadius);
-
-        const arcs = pieG.selectAll(".arc")
-            .data(pie(pieData))
-            .enter().append("g")
-                .attr("class", "arc");
-
-        arcs.append("path")
-            .attr("d", arc)
-            .attr("fill", (d, i) => pieColor(i))
-            .attr("stroke", "#fff")
-            .attr("stroke-width", 2)
-            .on("mouseover", function(event, d) {
-                d3.select(this).attr("opacity", 0.8);
-                tooltip.transition()
-                    .duration(200)
-                    .style("opacity", .9);
-                tooltip.html(`${d.data.label}<br>${d.data.pct}% (${d3.format(",")(d.data.value)})`)
-                    .style("left", (event.pageX + 10) + "px")
-                    .style("top", (event.pageY - 28) + "px");
-            })
-            .on("mouseout", function() {
-                d3.select(this).attr("opacity", 1);
-                tooltip.transition()
-                    .duration(500)
-                    .style("opacity", 0);
+            data.byHotel.forEach(d => {
+                d.total = d.canceled + d.notCanceled;
+                d.canceledPct = (d.canceled / d.total * 100).toFixed(1);
             });
 
-        // Add labels
-        arcs.append("text")
-            .attr("transform", d => `translate(${arc.centroid(d)})`)
-            .attr("dy", "0.35em")
-            .attr("text-anchor", "middle")
-            .text(d => `${d.data.pct}%`)
-            .style("fill", "#fff")
-            .style("font-size", "12px");
+            data.byLeadTime.forEach(d => {
+                d.total = d.canceled + d.notCanceled;
+                d.canceledPct = (d.canceled / d.total * 100).toFixed(1);
+            });
 
-        // 2. Hotel Cancellation Bar Chart
-        const hotelSvg = d3.select("#hotel-chart").append("svg")
-            .attr("width", 400)
-            .attr("height", 300);
-        const hotelWidth = +hotelSvg.attr("width");
-        const hotelHeight = +hotelSvg.attr("height");
-        const hotelMargin = {top: 30, right: 20, bottom: 50, left: 120};
-        const hotelInnerWidth = hotelWidth - hotelMargin.left - hotelMargin.right;
-        const hotelInnerHeight = hotelHeight - hotelMargin.top - hotelMargin.bottom;
+            data.byDeposit.forEach(d => {
+                d.total = d.canceled + d.notCanceled;
+                d.canceledPct = (d.canceled / d.total * 100).toFixed(1);
+            });
 
-        const hotelG = hotelSvg.append("g")
-            .attr("transform", `translate(${hotelMargin.left},${hotelMargin.top})`);
+            // Update insight card values
+            d3.select("#cancellationRate").text(`${data.cancellation.canceledPct}%`);
+            d3.select("#cityRate").text(`${data.byHotel[0].canceledPct}%`);
 
-        // Sort by cancellation percentage
-        data.byHotel.sort((a, b) => b.canceledPct - a.canceledPct);
+            // Tooltip
+            const tooltip = d3.select("body").append("div")
+                .attr("class", "tooltip");
 
-        const hotelX = d3.scaleLinear()
-            .domain([0, d3.max(data.byHotel, d => +d.canceledPct) + 5])
-            .range([0, hotelInnerWidth]);
+            // 1. Pie Chart - Overall Cancellation
+            const pieSvg = d3.select("#overall-chart").append("svg")
+                .attr("width", 400)
+                .attr("height", 300);
+            const pieWidth = +pieSvg.attr("width");
+            const pieHeight = +pieSvg.attr("height");
+            const pieRadius = Math.min(pieWidth, pieHeight) / 2 - 30;
+            const pieG = pieSvg.append("g")
+                .attr("transform", `translate(${pieWidth/2},${pieHeight/2})`);
 
-        const hotelY = d3.scaleBand()
-            .domain(data.byHotel.map(d => d.hotel))
-            .range([0, hotelInnerHeight])
-            .padding(0.2);
+            const pieColor = d3.scaleOrdinal()
+                .domain(["notCanceled", "canceled"])
+                .range(["#2ecc71", "#e74c3c"]);
 
-        // Color scale based on cancellation percentage
-        const hotelColor = d3.scaleLinear()
-            .domain([0, d3.max(data.byHotel, d => +d.canceledPct)])
-            .range(["#ffcccc", "#e74c3c"]);
+            const pie = d3.pie()
+                .value(d => d.value)
+                .sort(null);
 
-        hotelG.selectAll(".bar")
-            .data(data.byHotel)
-            .enter().append("rect")
-                .attr("class", "bar")
-                .attr("y", d => hotelY(d.hotel))
-                .attr("width", d => hotelX(+d.canceledPct))
-                .attr("height", hotelY.bandwidth())
-                .attr("fill", d => hotelColor(+d.canceledPct))
+            const pieData = [
+                { label: "Tidak Dibatalkan", value: data.cancellation.notCanceled, pct: data.cancellation.notCanceledPct },
+                { label: "Dibatalkan", value: data.cancellation.canceled, pct: data.cancellation.canceledPct }
+            ];
+
+            const arc = d3.arc()
+                .innerRadius(0)
+                .outerRadius(pieRadius)
+                .padAngle(0.02)
+                .padRadius(pieRadius);
+
+            const arcs = pieG.selectAll(".arc")
+                .data(pie(pieData))
+                .enter().append("g")
+                    .attr("class", "arc");
+
+            arcs.append("path")
+                .attr("d", arc)
+                .attr("fill", (d, i) => pieColor(i))
                 .attr("stroke", "#fff")
-                .attr("stroke-width", 1)
+                .attr("stroke-width", 2)
                 .on("mouseover", function(event, d) {
                     d3.select(this).attr("opacity", 0.8);
                     tooltip.transition()
                         .duration(200)
                         .style("opacity", .9);
-                    tooltip.html(`${d.hotel}<br>${d.canceledPct}% (${d3.format(",")(d.canceled)})`)
+                    tooltip.html(`${d.data.label}<br>${d.data.pct}% (${d3.format(",")(d.data.value)})`)
                         .style("left", (event.pageX + 10) + "px")
                         .style("top", (event.pageY - 28) + "px");
                 })
@@ -415,183 +376,288 @@
                         .style("opacity", 0);
                 });
 
-        // Add value labels
-        hotelG.selectAll(".text")
-            .data(data.byHotel)
-            .enter().append("text")
-                .attr("class", "text")
-                .attr("x", d => hotelX(+d.canceledPct) + 5)
-                .attr("y", d => hotelY(d.hotel) + hotelY.bandwidth() / 2)
+            // Add labels
+            arcs.append("text")
+                .attr("transform", d => `translate(${arc.centroid(d)})`)
                 .attr("dy", "0.35em")
-                .text(d => `${d.canceledPct}%`)
-                .style("font-size", "11px");
+                .attr("text-anchor", "middle")
+                .text(d => `${d.data.pct}%`)
+                .style("fill", "#fff")
+                .style("font-size", "12px");
 
-        // Add axes
-        hotelG.append("g")
-            .attr("class", "axis axis--x")
-            .attr("transform", `translate(0,${hotelInnerHeight})`)
-            .call(d3.axisBottom(hotelX).ticks(5).tickFormat(d => d + "%"));
+            // 2. Hotel Cancellation Bar Chart
+            const hotelSvg = d3.select("#hotel-chart").append("svg")
+                .attr("width", 400)
+                .attr("height", 300);
+            const hotelWidth = +hotelSvg.attr("width");
+            const hotelHeight = +hotelSvg.attr("height");
+            const hotelMargin = {top: 30, right: 20, bottom: 50, left: 120};
+            const hotelInnerWidth = hotelWidth - hotelMargin.left - hotelMargin.right;
+            const hotelInnerHeight = hotelHeight - hotelMargin.top - hotelMargin.bottom;
 
-        hotelG.append("g")
-            .attr("class", "axis axis--y")
-            .call(d3.axisLeft(hotelY));
+            const hotelG = hotelSvg.append("g")
+                .attr("transform", `translate(${hotelMargin.left},${hotelMargin.top})`);
 
-        // 3. Lead Time Cancellation Bar Chart
-        const leadtimeSvg = d3.select("#leadtime-chart").append("svg")
-            .attr("width", 400)
-            .attr("height", 300);
-        const leadtimeWidth = +leadtimeSvg.attr("width");
-        const leadtimeHeight = +leadtimeSvg.attr("height");
-        const leadtimeMargin = {top: 30, right: 20, bottom: 50, left: 120};
-        const leadtimeInnerWidth = leadtimeWidth - leadtimeMargin.left - leadtimeMargin.right;
-        const leadtimeInnerHeight = leadtimeHeight - leadtimeMargin.top - leadtimeMargin.bottom;
+            // Sort by cancellation percentage
+            data.byHotel.sort((a, b) => b.canceledPct - a.canceledPct);
 
-        const leadtimeG = leadtimeSvg.append("g")
-            .attr("transform", `translate(${leadtimeMargin.left},${leadtimeMargin.top})`);
+            const hotelX = d3.scaleLinear()
+                .domain([0, d3.max(data.byHotel, d => +d.canceledPct) + 5])
+                .range([0, hotelInnerWidth]);
 
-        // Sort by cancellation percentage
-        data.byLeadTime.sort((a, b) => b.canceledPct - a.canceledPct);
+            const hotelY = d3.scaleBand()
+                .domain(data.byHotel.map(d => d.hotel))
+                .range([0, hotelInnerHeight])
+                .padding(0.2);
 
-        const leadtimeX = d3.scaleLinear()
-            .domain([0, d3.max(data.byLeadTime, d => +d.canceledPct) + 5])
-            .range([0, leadtimeInnerWidth]);
+            // Color scale based on cancellation percentage
+            const hotelColor = d3.scaleLinear()
+                .domain([0, d3.max(data.byHotel, d => +d.canceledPct)])
+                .range(["#ffcccc", "#e74c3c"]);
 
-        const leadtimeY = d3.scaleBand()
-            .domain(data.byLeadTime.map(d => d.leadTime))
-            .range([0, leadtimeInnerHeight])
-            .padding(0.2);
+            hotelG.selectAll(".bar")
+                .data(data.byHotel)
+                .enter().append("rect")
+                    .attr("class", "bar")
+                    .attr("y", d => hotelY(d.hotel))
+                    .attr("width", d => hotelX(+d.canceledPct))
+                    .attr("height", hotelY.bandwidth())
+                    .attr("fill", d => hotelColor(+d.canceledPct))
+                    .attr("stroke", "#fff")
+                    .attr("stroke-width", 1)
+                    .on("mouseover", function(event, d) {
+                        d3.select(this).attr("opacity", 0.8);
+                        tooltip.transition()
+                            .duration(200)
+                            .style("opacity", .9);
+                        tooltip.html(`${d.hotel}<br>${d.canceledPct}% (${d3.format(",")(d.canceled)})`)
+                            .style("left", (event.pageX + 10) + "px")
+                            .style("top", (event.pageY - 28) + "px");
+                    })
+                    .on("mouseout", function() {
+                        d3.select(this).attr("opacity", 1);
+                        tooltip.transition()
+                            .duration(500)
+                            .style("opacity", 0);
+                    });
 
-        // Color scale based on cancellation percentage
-        const leadtimeColor = d3.scaleLinear()
-            .domain([0, d3.max(data.byLeadTime, d => +d.canceledPct)])
-            .range(["#ffcccc", "#e74c3c"]);
+            // Add value labels
+            hotelG.selectAll(".text")
+                .data(data.byHotel)
+                .enter().append("text")
+                    .attr("class", "text")
+                    .attr("x", d => hotelX(+d.canceledPct) + 5)
+                    .attr("y", d => hotelY(d.hotel) + hotelY.bandwidth() / 2)
+                    .attr("dy", "0.35em")
+                    .text(d => `${d.canceledPct}%`)
+                    .style("font-size", "11px");
 
-        leadtimeG.selectAll(".bar")
-            .data(data.byLeadTime)
-            .enter().append("rect")
-                .attr("class", "bar")
-                .attr("y", d => leadtimeY(d.leadTime))
-                .attr("width", d => leadtimeX(+d.canceledPct))
-                .attr("height", leadtimeY.bandwidth())
-                .attr("fill", d => leadtimeColor(+d.canceledPct))
-                .attr("stroke", "#fff")
-                .attr("stroke-width", 1)
-                .on("mouseover", function(event, d) {
-                    d3.select(this).attr("opacity", 0.8);
-                    tooltip.transition()
-                        .duration(200)
-                        .style("opacity", .9);
-                    tooltip.html(`${d.leadTime}<br>${d.canceledPct}% (${d3.format(",")(d.canceled)})`)
-                        .style("left", (event.pageX + 10) + "px")
-                        .style("top", (event.pageY - 28) + "px");
-                })
-                .on("mouseout", function() {
-                    d3.select(this).attr("opacity", 1);
-                    tooltip.transition()
-                        .duration(500)
-                        .style("opacity", 0);
-                });
+            // Add axes
+            hotelG.append("g")
+                .attr("class", "axis axis--x")
+                .attr("transform", `translate(0,${hotelInnerHeight})`)
+                .call(d3.axisBottom(hotelX).ticks(5).tickFormat(d => d + "%"));
 
-        // Add value labels
-        leadtimeG.selectAll(".text")
-            .data(data.byLeadTime)
-            .enter().append("text")
-                .attr("class", "text")
-                .attr("x", d => leadtimeX(+d.canceledPct) + 5)
-                .attr("y", d => leadtimeY(d.leadTime) + leadtimeY.bandwidth() / 2)
-                .attr("dy", "0.35em")
-                .text(d => `${d.canceledPct}%`)
-                .style("font-size", "11px");
+            hotelG.append("g")
+                .attr("class", "axis axis--y")
+                .call(d3.axisLeft(hotelY));
 
-        // Add axes
-        leadtimeG.append("g")
-            .attr("class", "axis axis--x")
-            .attr("transform", `translate(0,${leadtimeInnerHeight})`)
-            .call(d3.axisBottom(leadtimeX).ticks(5).tickFormat(d => d + "%"));
+            // 3. Lead Time Cancellation Bar Chart
+            const leadtimeSvg = d3.select("#leadtime-chart").append("svg")
+                .attr("width", 400)
+                .attr("height", 300);
+            const leadtimeWidth = +leadtimeSvg.attr("width");
+            const leadtimeHeight = +leadtimeSvg.attr("height");
+            const leadtimeMargin = {top: 30, right: 20, bottom: 50, left: 120};
+            const leadtimeInnerWidth = leadtimeWidth - leadtimeMargin.left - leadtimeMargin.right;
+            const leadtimeInnerHeight = leadtimeHeight - leadtimeMargin.top - leadtimeMargin.bottom;
 
-        leadtimeG.append("g")
-            .attr("class", "axis axis--y")
-            .call(d3.axisLeft(leadtimeY));
+            const leadtimeG = leadtimeSvg.append("g")
+                .attr("transform", `translate(${leadtimeMargin.left},${leadtimeMargin.top})`);
 
-        // 4. Deposit Type Cancellation Bar Chart
-        const depositSvg = d3.select("#deposit-chart").append("svg")
-            .attr("width", 400)
-            .attr("height", 300);
-        const depositWidth = +depositSvg.attr("width");
-        const depositHeight = +depositSvg.attr("height");
-        const depositMargin = {top: 30, right: 20, bottom: 50, left: 120};
-        const depositInnerWidth = depositWidth - depositMargin.left - depositMargin.right;
-        const depositInnerHeight = depositHeight - depositMargin.top - depositMargin.bottom;
+            // Sort by cancellation percentage
+            data.byLeadTime.sort((a, b) => b.canceledPct - a.canceledPct);
 
-        const depositG = depositSvg.append("g")
-            .attr("transform", `translate(${depositMargin.left},${depositMargin.top})`);
+            const leadtimeX = d3.scaleLinear()
+                .domain([0, d3.max(data.byLeadTime, d => +d.canceledPct) + 5])
+                .range([0, leadtimeInnerWidth]);
 
-        // Sort by cancellation percentage
-        data.byDeposit.sort((a, b) => b.canceledPct - a.canceledPct);
+            const leadtimeY = d3.scaleBand()
+                .domain(data.byLeadTime.map(d => d.leadTime))
+                .range([0, leadtimeInnerHeight])
+                .padding(0.2);
 
-        const depositX = d3.scaleLinear()
-            .domain([0, d3.max(data.byDeposit, d => +d.canceledPct) + 5])
-            .range([0, depositInnerWidth]);
+            // Color scale based on cancellation percentage
+            const leadtimeColor = d3.scaleLinear()
+                .domain([0, d3.max(data.byLeadTime, d => +d.canceledPct)])
+                .range(["#ffcccc", "#e74c3c"]);
 
-        const depositY = d3.scaleBand()
-            .domain(data.byDeposit.map(d => d.depositType))
-            .range([0, depositInnerHeight])
-            .padding(0.2);
+            leadtimeG.selectAll(".bar")
+                .data(data.byLeadTime)
+                .enter().append("rect")
+                    .attr("class", "bar")
+                    .attr("y", d => leadtimeY(d.leadTime))
+                    .attr("width", d => leadtimeX(+d.canceledPct))
+                    .attr("height", leadtimeY.bandwidth())
+                    .attr("fill", d => leadtimeColor(+d.canceledPct))
+                    .attr("stroke", "#fff")
+                    .attr("stroke-width", 1)
+                    .on("mouseover", function(event, d) {
+                        d3.select(this).attr("opacity", 0.8);
+                        tooltip.transition()
+                            .duration(200)
+                            .style("opacity", .9);
+                        tooltip.html(`${d.leadTime}<br>${d.canceledPct}% (${d3.format(",")(d.canceled)})`)
+                            .style("left", (event.pageX + 10) + "px")
+                            .style("top", (event.pageY - 28) + "px");
+                    })
+                    .on("mouseout", function() {
+                        d3.select(this).attr("opacity", 1);
+                        tooltip.transition()
+                            .duration(500)
+                            .style("opacity", 0);
+                    });
 
-        // Color scale based on cancellation percentage
-        const depositColor = d3.scaleLinear()
-            .domain([0, d3.max(data.byDeposit, d => +d.canceledPct)])
-            .range(["#ffcccc", "#e74c3c"]);
+            // Add value labels
+            leadtimeG.selectAll(".text")
+                .data(data.byLeadTime)
+                .enter().append("text")
+                    .attr("class", "text")
+                    .attr("x", d => leadtimeX(+d.canceledPct) + 5)
+                    .attr("y", d => leadtimeY(d.leadTime) + leadtimeY.bandwidth() / 2)
+                    .attr("dy", "0.35em")
+                    .text(d => `${d.canceledPct}%`)
+                    .style("font-size", "11px");
 
-        depositG.selectAll(".bar")
-            .data(data.byDeposit)
-            .enter().append("rect")
-                .attr("class", "bar")
-                .attr("y", d => depositY(d.depositType))
-                .attr("width", d => depositX(+d.canceledPct))
-                .attr("height", depositY.bandwidth())
-                .attr("fill", d => depositColor(+d.canceledPct))
-                .attr("stroke", "#fff")
-                .attr("stroke-width", 1)
-                .on("mouseover", function(event, d) {
-                    d3.select(this).attr("opacity", 0.8);
-                    tooltip.transition()
-                        .duration(200)
-                        .style("opacity", .9);
-                    tooltip.html(`${d.depositType}<br>${d.canceledPct}% (${d3.format(",")(d.canceled)})`)
-                        .style("left", (event.pageX + 10) + "px")
-                        .style("top", (event.pageY - 28) + "px");
-                })
-                .on("mouseout", function() {
-                    d3.select(this).attr("opacity", 1);
-                    tooltip.transition()
-                        .duration(500)
-                        .style("opacity", 0);
-                });
+            // Add axes
+            leadtimeG.append("g")
+                .attr("class", "axis axis--x")
+                .attr("transform", `translate(0,${leadtimeInnerHeight})`)
+                .call(d3.axisBottom(leadtimeX).ticks(5).tickFormat(d => d + "%"));
 
-        // Add value labels
-        depositG.selectAll(".text")
-            .data(data.byDeposit)
-            .enter().append("text")
-                .attr("class", "text")
-                .attr("x", d => depositX(+d.canceledPct) + 5)
-                .attr("y", d => depositY(d.depositType) + depositY.bandwidth() / 2)
-                .attr("dy", "0.35em")
-                .text(d => `${d.canceledPct}%`)
-                .style("font-size", "11px");
+            leadtimeG.append("g")
+                .attr("class", "axis axis--y")
+                .call(d3.axisLeft(leadtimeY));
 
-        // Add axes
-        depositG.append("g")
-            .attr("class", "axis axis--x")
-            .attr("transform", `translate(0,${depositInnerHeight})`)
-            .call(d3.axisBottom(depositX).ticks(5).tickFormat(d => d + "%"));
+            // 4. Deposit Type Cancellation Bar Chart
+            const depositSvg = d3.select("#deposit-chart").append("svg")
+                .attr("width", 400)
+                .attr("height", 300);
+            const depositWidth = +depositSvg.attr("width");
+            const depositHeight = +depositSvg.attr("height");
+            const depositMargin = {top: 30, right: 20, bottom: 50, left: 120};
+            const depositInnerWidth = depositWidth - depositMargin.left - depositMargin.right;
+            const depositInnerHeight = depositHeight - depositMargin.top - depositMargin.bottom;
 
-        depositG.append("g")
-            .attr("class", "axis axis--y")
-            .call(d3.axisLeft(depositY));
+            const depositG = depositSvg.append("g")
+                .attr("transform", `translate(${depositMargin.left},${depositMargin.top})`);
+
+            // Sort by cancellation percentage
+            data.byDeposit.sort((a, b) => b.canceledPct - a.canceledPct);
+
+            const depositX = d3.scaleLinear()
+                .domain([0, d3.max(data.byDeposit, d => +d.canceledPct) + 5])
+                .range([0, depositInnerWidth]);
+
+            const depositY = d3.scaleBand()
+                .domain(data.byDeposit.map(d => d.depositType))
+                .range([0, depositInnerHeight])
+                .padding(0.2);
+
+            // Color scale based on cancellation percentage
+            const depositColor = d3.scaleLinear()
+                .domain([0, d3.max(data.byDeposit, d => +d.canceledPct)])
+                .range(["#ffcccc", "#e74c3c"]);
+
+            depositG.selectAll(".bar")
+                .data(data.byDeposit)
+                .enter().append("rect")
+                    .attr("class", "bar")
+                    .attr("y", d => depositY(d.depositType))
+                    .attr("width", d => depositX(+d.canceledPct))
+                    .attr("height", depositY.bandwidth())
+                    .attr("fill", d => depositColor(+d.canceledPct))
+                    .attr("stroke", "#fff")
+                    .attr("stroke-width", 1)
+                    .on("mouseover", function(event, d) {
+                        d3.select(this).attr("opacity", 0.8);
+                        tooltip.transition()
+                            .duration(200)
+                            .style("opacity", .9);
+                        tooltip.html(`${d.depositType}<br>${d.canceledPct}% (${d3.format(",")(d.canceled)})`)
+                            .style("left", (event.pageX + 10) + "px")
+                            .style("top", (event.pageY - 28) + "px");
+                    })
+                    .on("mouseout", function() {
+                        d3.select(this).attr("opacity", 1);
+                        tooltip.transition()
+                            .duration(500)
+                            .style("opacity", 0);
+                    });
+
+            // Add value labels
+            depositG.selectAll(".text")
+                .data(data.byDeposit)
+                .enter().append("text")
+                    .attr("class", "text")
+                    .attr("x", d => depositX(+d.canceledPct) + 5)
+                    .attr("y", d => depositY(d.depositType) + depositY.bandwidth() / 2)
+                    .attr("dy", "0.35em")
+                    .text(d => `${d.canceledPct}%`)
+                    .style("font-size", "11px");
+
+            // Add axes
+            depositG.append("g")
+                .attr("class", "axis axis--x")
+                .attr("transform", `translate(0,${depositInnerHeight})`)
+                .call(d3.axisBottom(depositX).ticks(5).tickFormat(d => d + "%"));
+
+            depositG.append("g")
+                .attr("class", "axis axis--y")
+                .call(d3.axisLeft(depositY));
+
+            // Update insight cards with real data
+            updateInsightCards(data);
+        }).catch(function(error) {
+            console.error("Error loading the CSV file:", error);
+            alert("Error loading data. Please check if the CSV file exists in the correct location.");
+        });
+
+        // Update insight cards with real data
+        function updateInsightCards(data) {
+            // Tingkat Pembatalan
+            d3.select("#cancellationRate")
+                .text(`${data.cancellation.canceledPct}%`);
+            d3.select("#cancellationDescription")
+                .text(`Dari total ${d3.format(",")(data.cancellation.total)} pemesanan, sebanyak ${d3.format(",")(data.cancellation.canceled)} pemesanan dibatalkan`);
+
+            // City Hotel
+            const cityHotel = data.byHotel.find(d => d.hotel === "City Hotel");
+            d3.select("#cityRate")
+                .text(`${cityHotel.canceledPct}%`);
+            d3.select("#cityDescription")
+                .text(`City Hotel memiliki tingkat pembatalan ${cityHotel.canceledPct}% (${d3.format(",")(cityHotel.canceled)} pemesanan)`);
+
+            // Lead Time
+            const maxLeadTime = data.byLeadTime.reduce((a, b) => 
+                (+a.canceledPct > +b.canceledPct) ? a : b);
+            d3.select("#leadTimeValue")
+                .text(`${maxLeadTime.leadTime}`);
+            d3.select("#leadTimeDescription")
+                .text(`Pemesanan dengan lead time ${maxLeadTime.leadTime} memiliki tingkat pembatalan ${maxLeadTime.canceledPct}%`);
+
+            // Deposit Type
+            const maxDeposit = data.byDeposit.reduce((a, b) => 
+                (+a.canceledPct > +b.canceledPct) ? a : b);
+            d3.select("#depositValue")
+                .text(`${maxDeposit.canceledPct}%`);
+            d3.select("#depositDescription")
+                .text(`Pemesanan '${maxDeposit.depositType}' memiliki tingkat pembatalan ${maxDeposit.canceledPct}%`);
+        }
     </script>
-    <a href="index.html" class="back-button">
-        <span>←</span> Kembali ke Menu
+    <a href="index.html" class="page-back-button">
+        <i class="fas fa-arrow-left"></i>
+        <span>Kembali ke Home</span>
     </a>
 </body>
 </html>
