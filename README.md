@@ -48,16 +48,19 @@ http://localhost:8000
 
 ```bash
 visdat/
-├── 📄 index.html                  # Main dashboard
-├── 📊 Pembatalan-Pemesanan.html   # Cancellation analysis
-├── 📈 PemesananPerBulan.html      # Monthly trends
-├── 🏠 TipeKamar.html              # Room types
-├── 👥 Segmen-Pasar.html           # Market segments
-├── 🌍 Negara-AsalTamu.html        # Guest origins
+├── 📄 index.html                    # Main dashboard
+├── 📊 Pembatalan-Pemesanan.html     # Cancellation analysis
+├── 📈 PemesananPerBulan.html        # Monthly trends
+├── 🏠 TipeKamar.html                # Room types
+├── 👥 Segmen-Pasar.html             # Market segments
+├── 🌍 Negara-AsalTamu.html          # Guest origins
 ├── 🏨 Perbandingan-Jenis-Hotel.html # Hotel comparison
+├── 📸 images/                        # Image assets
+│   ├── dashboard.png                # Main dashboard preview
+│   └── preview.gif                  # Animation preview
 ├── 🎨 styles/
-│   └── main.css                   # Global styles
-└── 📝 README.md
+│   └── main.css                     # Global styles
+└── 📝 README.md                     # Documentation
 ```
 
 ## ✨ Features
