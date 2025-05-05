@@ -94,12 +94,7 @@ visdat/
 
 ## 🤝 Contributing
 
-```mermaid
-graph LR
-    A[Fork] --> B[Feature Branch]
-    B --> C[Commit Changes]
-    C --> D[Push]
-    D --> E[Pull Request]
+
 ```
 
 1. Fork repository
@@ -107,13 +102,12 @@ graph LR
 3. Commit changes (`git commit -m 'Add AmazingFeature'`)
 4. Push to branch (`git push origin feature/AmazingFeature`)
 5. Open Pull Request
-
+```
 ---
-
 <div align="center">
 
-Made with ❤️ by [Kelompok 10](https://github.com/mridho24)
 
+Made with ❤️ by [Kelompok 10](https://github.com/mridho24)
 
 
 </div>
