@@ -7,6 +7,8 @@
 
 An interactive data visualization dashboard analyzing hotel booking patterns, cancellations, and guest demographics.
 
+📌 **[Live Demo](https://mridho24.github.io/visdat/)**
+
 </div>
 
 ---
@@ -27,6 +29,23 @@ An interactive data visualization dashboard analyzing hotel booking patterns, ca
 - **Market Segments**: Customer segmentation
 - **Guest Origins**: Geographic distribution
 - **Hotel Comparisons**: Performance metrics
+
+## 📊 Dataset & Analysis
+
+### Dataset
+
+- **Name**: Hotel Booking Demand
+- **Source**: [Kaggle Dataset](https://www.kaggle.com/jessemostipak/hotel-booking-demand)
+- **Size**: 119,390 records
+- **Period**: 2015-2017
+- **Features**: 32 columns including booking details, guest information, and hotel data
+
+### Jupyter Notebooks
+
+Located in `notebook/` directory:
+
+- `preprocess.ipynb`: Data cleaning and preparation
+- `hotel_booking_visualization.ipynb`: Exploratory data analysis
 
 ## 🚀 Quick Start
 
@@ -55,6 +74,11 @@ visdat/
 ├── 👥 Segmen-Pasar.html             # Market segments
 ├── 🌍 Negara-AsalTamu.html          # Guest origins
 ├── 🏨 Perbandingan-Jenis-Hotel.html # Hotel comparison
+├── 📊 data/                         # Data files
+│   └── hotel_bookings_processed.csv # Processed dataset
+├── 📓 notebook/                     # Jupyter notebooks
+│   ├── preprocess.ipynb            # Data preprocessing
+│   └── hotel_booking_visualization.ipynb # Analysis
 ├── 📸 images/                        # Image assets
 │   ├── dashboard.png                # Main dashboard preview
 │   └── preview.gif                  # Animation preview
@@ -95,6 +119,12 @@ visdat/
 | <img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/chrome/chrome_48x48.png" alt="Chrome" width="24px" height="24px" /><br>Chrome | <img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/firefox/firefox_48x48.png" alt="Firefox" width="24px" height="24px" /><br>Firefox | <img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/safari/safari_48x48.png" alt="Safari" width="24px" height="24px" /><br>Safari | <img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/edge/edge_48x48.png" alt="Edge" width="24px" height="24px" /><br>Edge |
 | -------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Latest ✔                                                                                                                                                 | Latest ✔                                                                                                                                                     | Latest ✔                                                                                                                                                 | Latest ✔                                                                                                                                         |
+
+## 🌐 Access
+
+- **Live Demo**: [https://mridho24.github.io/visdat/](https://mridho24.github.io/visdat/)
+- **Repository**: [https://github.com/mridho24/visdat](https://github.com/mridho24/visdat)
+- **Documentation**: Available in notebook comments and README
 
 ## 🤝 Contributing
 
