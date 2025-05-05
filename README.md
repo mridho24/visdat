@@ -1,136 +1,119 @@
-# Hotel Data Visualization Project
+# 🏨 Hotel Data Visualization Project
 
-A comprehensive data visualization project analyzing hotel booking patterns, cancellations, and guest demographics using D3.js.
+<div align="center">
 
-## Overview
+![Hotel Visualization](https://img.shields.io/badge/D3.js-Visualization-orange)
+![Version](https://img.shields.io/badge/version-1.0.0-blue)
 
-This project provides interactive visualizations for hotel data analysis, focusing on several key aspects:
+An interactive data visualization dashboard analyzing hotel booking patterns, cancellations, and guest demographics.
 
-1. Booking Cancellations Analysis
-2. Monthly Booking Trends
-3. Room Type Distribution
-4. Market Segment Analysis
-5. Guest Country of Origin
-6. Hotel Type Comparison
+</div>
 
-## Features
+---
 
-### 1. Booking Cancellations (`Pembatalan-Pemesanan.html`)
-- Pie chart showing overall cancellation rates
-- Bar charts for cancellation analysis by:
-  - Hotel type
-  - Lead time
-  - Deposit type
-- Interactive insights cards
+## 📊 Key Visualizations
 
-### 2. Monthly Bookings (`PemesananPerBulan.html`)
-- Line and bar chart combination
-- Seasonal booking patterns
-- Comparative analysis between hotel types
-- Interactive filtering options
+![Dashboard Preview](preview-dashboard.png)
 
-### 3. Room Types (`TipeKamar.html`)
-- Distribution of room type bookings
-- Room matching analysis
-- Upgrade/downgrade statistics
-- Interactive pie and bar charts
+<div align="center">
+<img src="preview.gif" alt="Visualization Preview" width="600px"/>
+</div>
 
-### 4. Market Segments (`Segmen-Pasar.html`)
-- Market segment distribution
-- Booking channels analysis
-- Comparative visualization between segments
-- Interactive insights
+### 1. 📈 Booking Analysis
+- **Cancellations**: Interactive pie & bar charts
+- **Monthly Trends**: Time-series visualization
+- **Room Types**: Distribution analysis
+- **Market Segments**: Customer segmentation
+- **Guest Origins**: Geographic distribution
+- **Hotel Comparisons**: Performance metrics
 
-### 5. Guest Origin (`Negara-AsalTamu.html`)
-- Top countries visualization
-- Regional distribution
-- Detailed country statistics
-- Interactive data tables
+## 🚀 Quick Start
 
-### 6. Hotel Types (`Perbandingan-Jenis-Hotel.html`)
-- City vs Resort hotel comparison
-- Booking distribution
-- Interactive pie and bar charts
-
-## Technologies Used
-
-- HTML5
-- CSS3
-- JavaScript
-- D3.js (v7)
-- Custom styling and animations
-
-## Getting Started
-
-1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/hotel-data-visualization.git
-```
+# Clone repository
+git clone https://github.com/mridho24/visdat.git
 
-2. Open the project directory:
-```bash
-cd hotel-data-visualization
-```
+# Navigate to project
+cd visdat
 
-3. Set up a local server (e.g., using Python):
-```bash
-# Python 3.x
+# Start local server (Python 3)
 python -m http.server 8000
-```
 
-4. Open your browser and navigate to:
-```
+# Open in browser
 http://localhost:8000
 ```
 
-## File Structure
+## 📁 Project Structure
 
+```bash
+visdat/
+├── 📄 index.html                  # Main dashboard
+├── 📊 Pembatalan-Pemesanan.html   # Cancellation analysis
+├── 📈 PemesananPerBulan.html      # Monthly trends
+├── 🏠 TipeKamar.html              # Room types
+├── 👥 Segmen-Pasar.html           # Market segments
+├── 🌍 Negara-AsalTamu.html        # Guest origins
+├── 🏨 Perbandingan-Jenis-Hotel.html # Hotel comparison
+├── 🎨 styles/
+│   └── main.css                   # Global styles
+└── 📝 README.md
 ```
-hotel-data-visualization/
-├── index.html
-├── Pembatalan-Pemesanan.html
-├── PemesananPerBulan.html
-├── TipeKamar.html
-├── Segmen-Pasar.html
-├── Negara-AsalTamu.html
-├── Perbandingan-Jenis-Hotel.html
-├── styles/
-│   └── main.css
-└── README.md
+
+## ✨ Features
+
+<table>
+  <tr>
+    <td>🎯 Interactive Charts</td>
+    <td>📱 Responsive Design</td>
+    <td>🔄 Real-time Updates</td>
+  </tr>
+  <tr>
+    <td>💡 Insights Cards</td>
+    <td>🎨 Custom Animations</td>
+    <td>🔍 Advanced Filtering</td>
+  </tr>
+  <tr>
+    <td>📊 Data Export</td>
+    <td>🌈 Dynamic Theming</td>
+    <td>⚡ Fast Performance</td>
+  </tr>
+</table>
+
+## 🛠️ Technologies
+
+- ![D3.js](https://img.shields.io/badge/D3.js-v7-orange)
+- ![HTML5](https://img.shields.io/badge/HTML5-Latest-red)
+- ![CSS3](https://img.shields.io/badge/CSS3-Latest-blue)
+- ![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-yellow)
+
+## 🌐 Browser Support
+
+| <img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/chrome/chrome_48x48.png" alt="Chrome" width="24px" height="24px" /><br>Chrome | <img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/firefox/firefox_48x48.png" alt="Firefox" width="24px" height="24px" /><br>Firefox | <img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/safari/safari_48x48.png" alt="Safari" width="24px" height="24px" /><br>Safari | <img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/edge/edge_48x48.png" alt="Edge" width="24px" height="24px" /><br>Edge |
+| --------- | --------- | --------- | --------- |
+| Latest ✔ | Latest ✔ | Latest ✔ | Latest ✔ |
+
+## 🤝 Contributing
+
+```mermaid
+graph LR
+    A[Fork] --> B[Feature Branch]
+    B --> C[Commit Changes]
+    C --> D[Push]
+    D --> E[Pull Request]
 ```
 
-## Features
+1. Fork repository
+2. Create feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit changes (`git commit -m 'Add AmazingFeature'`)
+4. Push to branch (`git push origin feature/AmazingFeature`)
+5. Open Pull Request
 
-- Responsive design
-- Interactive visualizations
-- Cross-browser compatibility
-- Tooltips and hover effects
-- Insight cards with key metrics
-- Smooth animations and transitions
+---
 
-## Browser Support
+<div align="center">
 
-- Chrome (recommended)
-- Firefox
-- Safari
-- Edge
+Made with ❤️ by [Kelompok 10](https://github.com/mridho24)
 
-## Contributing
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
 
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Acknowledgments
-
-- D3.js community
-- Hotel dataset providers
-- Contributors and reviewers
-
-Project Link: https://github.com/mridho24/visdat.git
+</div>
