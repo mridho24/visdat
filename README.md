@@ -13,13 +13,14 @@ An interactive data visualization dashboard analyzing hotel booking patterns, ca
 
 ## 📊 Key Visualizations
 
-![Dashboard Preview](dashboard.png)
+![Dashboard Preview](images/dashboard.png)
 
 <div align="center">
 <img src="preview.gif" alt="Visualization Preview" width="600px"/>
 </div>
 
 ### 1. 📈 Booking Analysis
+
 - **Cancellations**: Interactive pie & bar charts
 - **Monthly Trends**: Time-series visualization
 - **Room Types**: Distribution analysis
@@ -89,11 +90,10 @@ visdat/
 ## 🌐 Browser Support
 
 | <img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/chrome/chrome_48x48.png" alt="Chrome" width="24px" height="24px" /><br>Chrome | <img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/firefox/firefox_48x48.png" alt="Firefox" width="24px" height="24px" /><br>Firefox | <img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/safari/safari_48x48.png" alt="Safari" width="24px" height="24px" /><br>Safari | <img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/edge/edge_48x48.png" alt="Edge" width="24px" height="24px" /><br>Edge |
-| --------- | --------- | --------- | --------- |
-| Latest ✔ | Latest ✔ | Latest ✔ | Latest ✔ |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Latest ✔                                                                                                                                                 | Latest ✔                                                                                                                                                     | Latest ✔                                                                                                                                                 | Latest ✔                                                                                                                                         |
 
 ## 🤝 Contributing
-
 
 ```
 
@@ -103,11 +103,11 @@ visdat/
 4. Push to branch (`git push origin feature/AmazingFeature`)
 5. Open Pull Request
 ```
+
 ---
+
 <div align="center">
 
-
 Made with ❤️ by [Kelompok 10](https://github.com/mridho24)
-
 
 </div>
