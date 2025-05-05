@@ -13,7 +13,7 @@ An interactive data visualization dashboard analyzing hotel booking patterns, ca
 
 ## 📊 Key Visualizations
 
-![Dashboard Preview](preview-dashboard.png)
+![Dashboard Preview](dashboard.png)
 
 <div align="center">
 <img src="preview.gif" alt="Visualization Preview" width="600px"/>
