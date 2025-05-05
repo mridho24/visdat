@@ -328,6 +328,23 @@
             .attr("class", "y axis")
             .call(d3.axisLeft(y));
 
+        // Add X axis label
+        barSvg.append("text")
+            .attr("x", barChartWidth / 2)
+            .attr("y", barChartHeight + margin.bottom - 10)
+            .attr("text-anchor", "middle")
+            .style("font-size", "14px")
+            .text("Jumlah Pemesanan");
+
+        // Add Y axis label
+        barSvg.append("text")
+            .attr("transform", "rotate(-90)")
+            .attr("x", -barChartHeight / 2)
+            .attr("y", -margin.left + 20)
+            .attr("text-anchor", "middle")
+            .style("font-size", "14px")
+            .text("Tipe Kamar");
+
         // Add chart title
         barSvg.append("text")
             .attr("x", barChartWidth / 2)

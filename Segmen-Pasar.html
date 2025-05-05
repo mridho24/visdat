@@ -69,9 +69,9 @@
     }
 
     .axis-label {
+      fill: #2c3e50;
+      font-weight: 500;
       font-family: 'Segoe UI', sans-serif;
-      font-size: 12px;
-      color: #7f8c8d;
     }
 
     .tooltip {
@@ -398,6 +398,23 @@
       .call(d3.axisBottom(x1).ticks(5).tickFormat(d3.format(",")).tickSizeOuter(0))
       .selectAll("text").attr("class", "axis-label");
 
+    g1.append("text")
+      .attr("class", "axis-label")
+      .attr("x", width1 / 2)
+      .attr("y", height1 + margin1.bottom - 5)
+      .attr("text-anchor", "middle")
+      .style("font-size", "12px")
+      .text("Jumlah Pemesanan");
+
+    g1.append("text")
+      .attr("class", "axis-label")
+      .attr("transform", "rotate(-90)")
+      .attr("x", -height1 / 2)
+      .attr("y", -margin1.left + 20)
+      .attr("text-anchor", "middle")
+      .style("font-size", "12px")
+      .text("Segmen Pasar");
+
     g1.selectAll(".bar")
       .data(totalCounts)
       .enter().append("rect")
@@ -439,6 +456,23 @@
       .attr("transform", `translate(0,${height2})`)
       .call(d3.axisBottom(x2).ticks(5).tickFormat(d3.format(",")).tickSizeOuter(0))
       .selectAll("text").attr("class", "axis-label");
+
+    g2.append("text")
+      .attr("class", "axis-label")
+      .attr("x", width2 / 2)
+      .attr("y", height2 + margin2.bottom - 5)
+      .attr("text-anchor", "middle")
+      .style("font-size", "12px")
+      .text("Jumlah Pemesanan");
+
+    g2.append("text")
+      .attr("class", "axis-label")
+      .attr("transform", "rotate(-90)")
+      .attr("x", -height2 / 2)
+      .attr("y", -margin2.left + 20)
+      .attr("text-anchor", "middle")
+      .style("font-size", "12px")
+      .text("Segmen Pasar");
 
     g2.selectAll(".city")
       .data(segments)
